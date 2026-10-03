@@ -115,12 +115,26 @@ export type TaskDraft = Omit<
 // ─────────────────────────────────────────────────────────────
 
 /**
+ * Draft until the human says so.
+ *
+ * The approval gate is not friction, it is the product moment: the human stays
+ * in command of their own life while handing off the work. A `draft` handoff
+ * is invisible to every connected agent — the MCP read tools do not serve it,
+ * and there is no flag anywhere that makes them.
+ */
+export type HandoffStatus = 'draft' | 'approved';
+
+/**
  * The decision a human landed, plus the work that moves it. This whole object
- * is what an agent gets when it connects.
+ * is what an agent gets when it connects — once the human has approved it.
  */
 export interface Handoff {
   /** The call or session this came out of. The MCP handle for the handoff. */
   id: string;
+  /** `draft` until the human approves. Agents only ever see `approved`. */
+  status: HandoffStatus;
+  /** When the human approved it. Null while it is a draft. */
+  approved_at: string | null;
   /** The decision in the caller's own words. Verbatim. */
   decision: string;
   /** Where they said they are trying to end up. Their words. */

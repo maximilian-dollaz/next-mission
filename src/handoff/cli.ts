@@ -11,12 +11,15 @@
 import { readFile } from 'node:fs/promises';
 import { buildHandoff, fromBrief, putHandoff, renderSplit, type BriefLike } from './index.js';
 import { backend } from './store.js';
-import { REHEARSAL_DECISION } from './sample.js';
+import { REHEARSAL_DECISION, RIB_DECISION } from './sample.js';
 import type { DecisionInput } from './types.js';
 
 async function input(): Promise<DecisionInput> {
   const path = process.argv[2];
   if (!path) return REHEARSAL_DECISION;
+  // `-- rib` runs the real 414-second call from 2026-10-03.
+  if (path === 'rib') return RIB_DECISION;
+  if (path === 'rehearsal') return REHEARSAL_DECISION;
   const brief = JSON.parse(await readFile(path, 'utf8')) as BriefLike;
   return fromBrief(brief, path.replace(/.*\//, '').replace(/\.json$/, ''));
 }

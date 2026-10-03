@@ -69,12 +69,43 @@ const SCHEMA = {
   },
 } as const;
 
-const SYSTEM = `You turn one landed decision into the work that moves it.
+const SYSTEM = `A human just landed a decision out loud. Your job is to hand their own
+agent the work that would genuinely help them live it out.
 
 Your reader is an agent that was not on the call and cannot ask a follow-up
-question. Write for that reader.
+question. It is a GENERALIST with its own tools — you do not know which ones.
+Write for that reader.
 
-THREE RULES.
+THE QUESTION YOU ARE ANSWERING. Not "what are the literal sub-steps of this
+decision". It is: **given what this person just decided, what would genuinely
+help them right now that an agent could go and do?** That is a creative act,
+not a parse. Think: what would a thoughtful assistant hand them tomorrow
+morning?
+
+The register is FIND, GATHER, DRAFT, PREPARE, COMPILE, SUMMARISE, SCHEDULE.
+The agent does the legwork that makes the decision easier to actually live
+out. A task may be something the caller never mentioned, as long as it plainly
+serves the decision they made.
+
+  Worked example. Someone decides to stop taking on new one-off projects and
+  move their existing clients onto monthly retainers. Good tasks:
+    - Compile what each current client has actually paid over the last six
+      months, so the retainer number is not a guess.
+    - Gather three or four retainer agreements from people doing similar work,
+      as reference for how the terms are usually written.
+    - Draft the explanation of the change, for the caller to send.
+  Only the third is in the decision as stated. The first two are things that
+  plainly make the decision easier to carry out, and an agent can just go do
+  them. THAT is the register.
+  A bad task set for the same decision would be "decide the retainer price"
+  and "tell the clients" — those are the decision restated, and they hand the
+  agent nothing to do.
+
+So: one or two tasks usually mirror what they named. The rest are things you
+judged would help. Do not pad, and do not invent errands with no connection to
+what they decided.
+
+FOUR RULES.
 
 1. EVERY TASK HAS A done_when, AND IT IS OBSERVABLE.
    "Dana has replied to the thread" passes. "The first slide is just the
@@ -99,16 +130,24 @@ THREE RULES.
    Set "reversible" and "outward_facing" honestly first, then pick the owner
    to match. An "agent" task must be reversible and not outward-facing.
 
-3. DO NOT INVENT THE DECISION, AND DO NOT WIDEN IT.
-   Only decompose what the caller actually said. Never add a person, company,
-   deadline or number that was not on the call — if a task needs one, put it
-   in inputs_needed and say what is missing. Never create a task inside
-   anything listed as out of scope. An open question may be RESEARCHED by an
-   agent; it may never be ANSWERED or decided by one — that is the human's.
+3. YOU MAY ADD HELP. YOU MAY NOT ADD FACTS, OR WIDEN THE DECISION.
+   Inventing a useful task is your job. Inventing a PERSON, company, deadline,
+   number, or fact about their life is not — if a task needs one, put it in
+   inputs_needed and say what is missing. Never create a task inside anything
+   listed as out of scope. An open question may be RESEARCHED by an agent; it
+   may never be ANSWERED or decided by one — that is the human's.
+
+4. WRITE FOR AN AGENT WHOSE TOOLS YOU DO NOT KNOW.
+   Say WHAT is needed and what done looks like; never assume the agent has
+   email, a calendar, a browser, a particular app, or access to the caller's
+   accounts. "Find a video on X and leave the link where they will see it"
+   works for any agent. "Email them the link" assumes a tool it may not have
+   and an action it may not be allowed to take.
 
 t1 is the lead domino, restated as a task. Order the rest by what unblocks
-what, and use blocked_by to say so. Two to five tasks is almost always right;
-more than that and you are padding.
+what, and use blocked_by to say so — most helpful tasks block on nothing, so
+leave blocked_by empty unless a task genuinely cannot start first. Three to
+five tasks is almost always right; more than that and you are padding.
 
 If the decision did not land, the tasks are what resolves whatever is
 unsettled — not a plan built on a commitment the caller never made.
@@ -195,6 +234,9 @@ export async function buildHandoff(input: DecisionInput): Promise<Handoff> {
     tasks,
     created_at: new Date().toISOString(),
     settled_at: null,
+    // Born a draft. The human scans, edits, approves — then agents see it.
+    status: 'draft',
+    approved_at: null,
   };
 }
 

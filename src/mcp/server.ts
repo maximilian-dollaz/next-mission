@@ -24,12 +24,7 @@
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { WebStandardStreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/webStandardStreamableHttp.js';
 import { z } from 'zod';
-import {
-  backend,
-  getHandoff,
-  latestHandoff,
-  updateTask,
-} from '../handoff/store.js';
+import { backend, getApproved, latestApproved, updateTask } from '../handoff/store.js';
 import { claimable, isReady, onTheHuman, type Handoff, type Task } from '../handoff/types.js';
 
 /** Every tool answers with text; agents read it, and so does a judge watching. */
@@ -41,12 +36,17 @@ function fail(body: string) {
   return { content: [{ type: 'text' as const, text: body }], isError: true as const };
 }
 
+/**
+ * The only way this server reaches a handoff. Approved-only, by construction:
+ * a draft the human has not signed off on is invisible here, and there is no
+ * parameter that changes that.
+ */
 async function resolve(id?: string): Promise<Handoff | null> {
-  return id ? await getHandoff(id) : await latestHandoff();
+  return id ? await getApproved(id) : await latestApproved();
 }
 
 const NOTHING =
-  'No decision has been handed off yet. A call has to land one first — then call get_decision again.';
+  'Nothing to work on yet. Either no call has landed a decision, or the human has not approved the brief yet — they scan and approve it before anything reaches you. Try again shortly.';
 
 /** One task, rendered for an agent that was not on the call. */
 function renderTask(t: Task, all: Task[]): string {

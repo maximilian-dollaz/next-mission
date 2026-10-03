@@ -20,6 +20,11 @@ create table if not exists public.handoffs (
   -- completion; a handoff is small enough that a row rewrite is cheaper than
   -- a second table and a join.
   tasks          jsonb       not null default '[]'::jsonb,
+  -- Draft until the human approves. The MCP read path filters on this, so a
+  -- draft is invisible to every connected agent.
+  status         text        not null default 'draft'
+                             check (status in ('draft', 'approved')),
+  approved_at    timestamptz,
   created_at     timestamptz not null default now(),
   -- Set when the MPP settlement receipt for this handoff exists.
   settled_at     timestamptz
@@ -27,6 +32,9 @@ create table if not exists public.handoffs (
 
 create index if not exists handoffs_tenant_created_idx
   on public.handoffs (tenant, created_at desc);
+
+create index if not exists handoffs_approved_idx
+  on public.handoffs (status, approved_at desc);
 
 -- The MCP server reads and writes as the service role, and there is one demo
 -- tenant, so RLS is on with no public policy: nothing reaches this table on
