@@ -11,6 +11,7 @@
  */
 
 import { createHmac } from 'node:crypto';
+import { CONTACT_NAME, CONTACT_ORG, VCARD_FILENAME } from '../src/web/vcard.js';
 
 const BASE = (process.env.BASE ?? 'https://next-mission-nu.vercel.app').replace(/\/+$/, '');
 
@@ -34,7 +35,7 @@ async function main() {
   const html = await page.text();
   report(
     'the page',
-    page.ok && html.includes('Add Next Mission to my contacts'),
+    page.ok && html.includes(`Add ${CONTACT_NAME} to my contacts`),
     `${page.status}, ${html.length}b, qr=${html.includes('<svg') ? 'yes' : 'NO'}`
   );
 
@@ -46,9 +47,10 @@ async function main() {
     'the vCard',
     vcf.ok &&
       (vcf.headers.get('content-type') ?? '').includes('text/vcard') &&
-      disposition.includes('Next Mission.vcf') &&
+      disposition.includes(VCARD_FILENAME) &&
       vcard.includes('TEL') &&
-      vcard.includes('FN:Next Mission'),
+      vcard.includes(`FN:${CONTACT_NAME}`) &&
+      vcard.includes(`ORG:${CONTACT_ORG}`),
     `${vcf.status}, ${vcf.headers.get('content-type')}, ${disposition}`
   );
 
