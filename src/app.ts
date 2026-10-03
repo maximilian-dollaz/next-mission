@@ -68,6 +68,9 @@ app.use('*', cors());
 // document below.
 app.route('/', web);
 
+// Non-browsers fall through the front door to here.
+app.get('/', (c) => app.fetch(new Request(new URL('/service', c.req.url))));
+
 /** Parse a JSON body, treating absent or malformed bodies as `{}`. */
 async function body<T extends object>(c: Context): Promise<Partial<T>> {
   return (await c.req.json().catch(() => ({}))) as Partial<T>;
@@ -89,7 +92,7 @@ app.onError((err, c) => {
 // Always-on
 // ─────────────────────────────────────────────────────────────
 
-app.get(['/', '/service'], (c) =>
+app.get('/service', (c) =>
   c.json({
     service: 'next-mission',
     what: 'A private voice agent that walks a human to a decision they believe, then hands their own agent an executable brief.',
