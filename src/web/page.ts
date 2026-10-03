@@ -238,13 +238,23 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   button:hover { background: var(--ember-lift); }
   button:focus-visible { outline: 2px solid var(--light); outline-offset: 2px; }
   button:disabled { opacity: .55; cursor: default; }
-  button.ghost {
+  button.ghost, a.ghost {
     color: var(--light);
     background: transparent;
     border: 1px solid var(--hair-strong);
   }
-  button.ghost:hover { background: var(--well); }
-  a:has(> button.ghost) { display: block; text-decoration: none; }
+  button.ghost:hover, a.ghost:hover { background: var(--well); }
+  /* The anchor IS the button. iOS will not open a vCard from a nested
+     <button>, nor from a programmatic navigation — only a direct tap on a
+     real link, with no download attribute. Do not "improve" this. */
+  a.ghost {
+    display: block; width: 100%; box-sizing: border-box;
+    margin-top: .625rem;
+    text-align: center; text-decoration: none; cursor: pointer;
+    font-family: var(--body); font-size: 16px; font-weight: 500;
+    padding: 1rem 1.0625rem; border-radius: 12px; -webkit-appearance: none;
+  }
+  a.ghost:focus-visible { outline: 2px solid var(--light); outline-offset: 2px; }
 
   .fine { margin: 18px 0 0; font-size: 13px; line-height: 1.5; color: var(--faint); }
   .err {
@@ -384,9 +394,7 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
     <p class="gloss" style="margin-bottom:1.75rem">Tap to call, or add the contact
       so it is there the next time you are standing at a crossroads.</p>
 
-    <a id="vcf" href="/next-mission.vcf" download="${VCARD_FILENAME}">
-      <button class="ghost" type="button">Add to contacts</button>
-    </a>
+    <a id="vcf" class="ghost" href="/next-mission.vcf" role="button">Add to contacts</a>
 
     <ol class="steps" style="margin-top:2rem">
       <li>Tap <strong>Add to contacts</strong> &mdash; your phone opens a contact card.</li>
@@ -452,11 +460,9 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
         body.setAttribute('data-state', 'done');
         window.scrollTo(0, 0);
 
-        // Hand back the vCard immediately — the tap they already made is the
-        // tap that installs it. The panel behind it is there for a second go.
-        setTimeout(function () {
-          window.location.href = d.vcard_url || '/next-mission.vcf';
-        }, 350);
+        // Do NOT navigate programmatically. iOS Safari only opens a vCard
+        // from a direct user gesture, and this point is two async hops from
+        // the tap. The anchor below is the gesture.
       })
       .catch(function () {
         err.textContent = 'Could not reach the server. Try again?';

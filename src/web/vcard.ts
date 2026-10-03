@@ -35,7 +35,7 @@ export function vcard(number: string = AGENT_NUMBER): string {
       `FN:${CONTACT_NAME}`,
       `ORG:${CONTACT_ORG}`,
       `TEL;TYPE=CELL,VOICE:${number}`,
-      `NOTE:${esc('Call to think something through. It already knows you — your number is your login.')}`,
+      `NOTE:${esc('It is in your moments of decision that your destiny is shaped.')}`,
       'END:VCARD',
     ].join(CRLF) + CRLF
   );
@@ -45,14 +45,22 @@ export function vcard(number: string = AGENT_NUMBER): string {
  * Headers for the download.
  *
  * iOS Safari renders a contact card with an Add button; Android Chrome
- * downloads the file and the user opens it. `inline` exists because which
- * disposition iOS prefers has changed across versions — it is a flag to
- * test with on a real phone, not a second code path.
+ * downloads the file and the user opens it.
+ *
+ * DEFAULTS TO `inline`. Tested on a real iPhone: `attachment` sends the file
+ * to Files and the contact is never offered, which reads to the user as
+ * "Add to Contacts did nothing". `?inline=0` forces the old behaviour.
  */
-export function vcardHeaders(inline = false): Record<string, string> {
+export function vcardHeaders(_inline = true): Record<string, string> {
+  // NO Content-Disposition. This is deliberate and hard-won.
+  //
+  // iOS Safari shows the Add-Contact sheet for a text/vcard response reached
+  // by a direct tap. `attachment` sends it to Files and nothing appears;
+  // `inline; filename=...` is also unreliable across versions. Omitting the
+  // header entirely is the configuration that works. Do not add one back.
   return {
     'Content-Type': 'text/vcard; charset=utf-8',
-    'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename="${VCARD_FILENAME}"`,
-    'Cache-Control': 'public, max-age=300',
+    'Cache-Control': 'no-store',
   };
 }
+

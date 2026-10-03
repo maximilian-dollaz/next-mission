@@ -11,7 +11,7 @@
  */
 
 import { createHmac } from 'node:crypto';
-import { CONTACT_NAME, CONTACT_ORG, VCARD_FILENAME } from '../src/web/vcard.js';
+import { CONTACT_NAME, VCARD_FILENAME } from '../src/web/vcard.js';
 
 const BASE = (process.env.BASE ?? 'https://next-mission-nu.vercel.app').replace(/\/+$/, '');
 
@@ -50,7 +50,7 @@ async function main() {
       disposition.includes(VCARD_FILENAME) &&
       vcard.includes('TEL') &&
       vcard.includes(`FN:${CONTACT_NAME}`) &&
-      vcard.includes(`ORG:${CONTACT_ORG}`),
+      disposition.startsWith('inline'),
     `${vcf.status}, ${vcf.headers.get('content-type')}, ${disposition}`
   );
 
