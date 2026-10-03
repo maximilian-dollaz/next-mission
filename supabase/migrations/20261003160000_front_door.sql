@@ -154,7 +154,8 @@ security definer
 set search_path = public
 as $$
 declare
-  v_existing boolean;
+  v_existing boolean := true;  -- withheld caller ID: nobody to create
+  v_phone    text;             -- kept separate from v_user, which may be NULL
   v_user     users;
   v_call     calls;
 begin
@@ -166,16 +167,15 @@ begin
   -- because someone called before signing up.
   if p_from_number ~ '^\+[1-9][0-9]{7,14}$' then
     select exists (select 1 from users where phone = p_from_number) into v_existing;
-    v_user := provision_user(p_from_number, 'caller_id');
-  else
-    v_existing := true;  -- withheld / unparseable caller ID: no user to attach
+    v_user  := provision_user(p_from_number, 'caller_id');
+    v_phone := p_from_number;
   end if;
 
   insert into calls (
     call_id, phone, from_number, to_number,
     duration_seconds, started_at, ended_at, disconnect_reason
   ) values (
-    p_call_id, v_user.phone, p_from_number, p_to_number,
+    p_call_id, v_phone, p_from_number, p_to_number,
     greatest(coalesce(p_seconds, 0), 0), p_started_at, p_ended_at, p_reason
   )
   on conflict (call_id) do update set
@@ -190,16 +190,16 @@ begin
 
   -- Roll the user's totals from the ledger rather than incrementing, so a
   -- replay cannot inflate them.
-  if v_user.phone is not null then
+  if v_phone is not null then
     update users u
        set call_count    = agg.n,
            total_seconds = agg.secs,
            last_seen_at  = now()
       from (
         select count(*)::int as n, coalesce(sum(duration_seconds), 0)::int as secs
-          from calls where phone = v_user.phone
+          from calls where phone = v_phone
       ) agg
-     where u.phone = v_user.phone
+     where u.phone = v_phone
     returning u.* into v_user;
   end if;
 
@@ -299,6 +299,12 @@ create policy subject_self on receipts
             or s.subject_id = 'demo-subject')));
 
 -- Provisioning is called by the server, never by a browser.
-revoke all on function provision_user(text, text) from anon, authenticated;
+-- EXECUTE is granted to PUBLIC on every new function, so revoking it from
+-- anon and authenticated alone would leave it reachable. Revoke PUBLIC, then
+-- grant it back to service_role only.
+revoke all on function provision_user(text, text) from public, anon, authenticated;
 revoke all on function record_call(text, text, text, integer, timestamptz, timestamptz, text)
-  from anon, authenticated;
+  from public, anon, authenticated;
+grant execute on function provision_user(text, text) to service_role;
+grant execute on function record_call(text, text, text, integer, timestamptz, timestamptz, text)
+  to service_role;

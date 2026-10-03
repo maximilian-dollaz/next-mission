@@ -22,7 +22,9 @@
     "db:smoke": "node --env-file-if-exists=.env --import tsx scripts/smoke.ts",
     "deploy": "vercel deploy --prod --yes",
     "deploy:env": "node --env-file-if-exists=.env --import tsx scripts/push-vercel-env.ts",
-    "tunnel": "cloudflared tunnel --url http://localhost:4242"
+    "tunnel": "cloudflared tunnel --url http://localhost:4242",
+    "front:smoke": "node --env-file-if-exists=.env --import tsx scripts/front-door-smoke.ts",
+    "front:meter": "node --env-file-if-exists=.env --import tsx -e \"import('./src/billing/index.ts').then(m=>m.ensureMeter()).then(m=>console.log(JSON.stringify(m,null,2)))\""
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",

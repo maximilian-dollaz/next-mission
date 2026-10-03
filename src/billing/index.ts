@@ -146,7 +146,7 @@ export function formatSeconds(totalSeconds: number): string {
  */
 export function accruedLine(totalSeconds: number): string {
   if (totalSeconds <= 0) {
-    return `Free to add. Talk time is ${usd(talkRateUsdPerSecond() * 60)} a minute.`;
+    return `Free to add. Talk time is $${usd(talkRateUsdPerSecond() * 60)} a minute.`;
   }
-  return `You've used ${formatSeconds(totalSeconds)} — ${usd(accruedUsd(totalSeconds))}.`;
+  return `You've used ${formatSeconds(totalSeconds)} — $${usd(accruedUsd(totalSeconds))}.`;
 }
