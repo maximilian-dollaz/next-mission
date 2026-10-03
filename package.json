@@ -23,7 +23,9 @@
     "deploy": "vercel deploy --prod --yes",
     "deploy:env": "node --env-file-if-exists=.env --import tsx scripts/push-vercel-env.ts",
     "tunnel": "cloudflared tunnel --url http://localhost:4242",
-    "handoff:demo": "node --env-file-if-exists=.env --import tsx src/handoff/cli.ts"
+    "handoff:demo": "node --env-file-if-exists=.env --import tsx src/handoff/cli.ts",
+    "brain:demo": "node --env-file-if-exists=.env --import tsx src/brain/cli.ts",
+    "brain:status": "node --env-file-if-exists=.env --import tsx scripts/brain-status.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",
