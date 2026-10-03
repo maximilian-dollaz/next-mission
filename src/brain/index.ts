@@ -9,6 +9,7 @@
  */
 
 export { runPipeline, type RunOptions } from './pipeline.js';
+export { archiveAndDestroy, type ArchiveOptions, type PhoneBrief } from './handoff.js';
 export { briefSlug, renderBrief } from './page.js';
 export { extract } from './extract.js';
 export * as gbrain from './gbrain.js';

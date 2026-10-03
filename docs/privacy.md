@@ -45,9 +45,17 @@ made to verify.
 
 ### 1.2 The recording can be prevented from ever existing
 
-Better than deleting a recording is never making one. AgentPhone's
-`POST /v1/calls` accepts `disableRecording: true` — their words: *"no audio
-recording is stored for this call."*
+Better than deleting a recording is never making one.
+
+**On this account no recording exists for any call**, because audio recording
+is a paid add-on that is not enabled. That is checkable on any call id, and it
+is the strongest form of the claim: there is nothing to delete.
+
+If recording is ever turned on, the way to keep this true is at call creation:
+`POST /v1/calls` accepts `disableRecording: true` — their words, *"no audio
+recording is stored for this call."* It is available on outbound calls only;
+`CreateWebCallRequest` has no such field and inbound calls carry no request
+body.
 
 **Check it:**
 ```bash
@@ -126,7 +134,7 @@ model, because it does.** Three places:
 
 | Where | What it sees | Why |
 |---|---|---|
-| **Voice, in the call** | Everything you say, as you say it | The live audio runs on AgentPhone's hosted voice, and the browser surface runs Gemini Live. Both are hosted frontier-model paths. |
+| **Voice, in the call** | Everything you say, as you say it | Two possible paths, and they are not equally exposed. The browser surface runs **Gemini Live** — one vendor. The phone surface runs **AgentPhone, which is a reseller on top of Retell AI** — see §2.3 for the full chain, which is five or six parties. |
 | **Extraction, after the call** | The full transcript, once | One request to Anthropic (`claude-opus-5`) turns the conversation into a decision, one action, and the context items. This is the step that lets us destroy the transcript — something has to read it before it goes. |
 | **Your own agent, later** | Whatever it recalls from your brain | Memory is only useful if a model can read it. The model in the loop sees what it recalls. |
 
@@ -171,7 +179,36 @@ On a real call the output says `agentphone.transcript — retained_by_third_part
 and prints the 405 we got and the 200 the transcript still returns. We would
 rather show you that than a green checkmark we did not earn.
 
-### 2.3 "Deleted from memory" is not "deleted from the universe"
+### 2.3 On the phone path, AgentPhone is a reseller — the chain is longer than one vendor
+
+We established this from their live API, not from their marketing. Every voice
+preview they serve is hosted at `retell-utils-public.s3.us-west-2.amazonaws.com`;
+their voice IDs are Retell's namespace (`11labs-Willa`, `cartesia-Adam`,
+`openai-Nova`, and literally `retell-Willa`); their SIP example points at
+`sip:example.sip.livekit.cloud`; and their agent configuration is Retell's
+agent API field for field.
+
+So a phone call touches, at minimum:
+
+| Layer | Who |
+|---|---|
+| Telephony and media | Retell's carrier, over LiveKit Cloud |
+| Speech to text | Retell's STT. The vendor is not disclosed in their API. |
+| Text to speech | Whichever of **ElevenLabs, Cartesia, MiniMax, OpenAI, Fish Audio or Inworld** backs the chosen voice. 312 voices across those six, plus Retell's own. |
+| The model running the conversation | Retell's **hosted LLM**, selected as `turbo`/`balanced`/`max`. Which models back those tiers is not disclosed. |
+
+Two consequences worth stating plainly:
+
+- **The browser path is the one with the short vendor list.** If the privacy
+  claim is the point, Gemini Live is one party hearing the call instead of
+  five or six.
+- **On the hosted phone path we do not control the model.** The decision
+  protocol runs on an undisclosed Retell-hosted model. AgentPhone's
+  `voiceMode: "webhook"` hands that back — they do telephony, STT and TTS, and
+  our server answers each turn with Claude — at the cost of a round-trip per
+  turn.
+
+### 2.4 "Deleted from memory" is not "deleted from the universe"
 
 Our receipt only ever claims the stores we actually checked. Where we have no
 visibility — a vendor's backups, a cloud provider's replication lag — we say
@@ -181,21 +218,40 @@ nothing, because we do not know.
 
 ## 3. The residual exposure, in full
 
-Everything that can see your words, in one list:
+Everything that can see your words, in one list. The phone path and the
+browser path are genuinely different and we do not average them.
 
-1. **AgentPhone** — hears the call, and keeps its own transcript indefinitely.
-   We cannot delete it. We can stop the recording from ever being made.
-2. **Google (Gemini Live)** — hears the call on the browser surface.
-3. **Anthropic** — receives the transcript once, for the extraction request.
-4. **Your own agent's model provider** — sees whatever it recalls from your
-   brain, when it recalls it.
-5. **Anyone with your machine** — the brain is a file at
-   `~/.gbrain/brain.pglite`. Disk encryption is your operating system's job,
-   not ours.
-6. **A recording URL, if a recording exists.** AgentPhone's recording endpoint
-   is documented as a *"public bearer-link endpoint"* — the link is shareable
-   by anyone who holds it. This is a second reason we prevent the recording
-   rather than manage it.
+**Both paths**
+
+1. **Anthropic** — receives the transcript once, for the extraction request
+   that lets us destroy it. Does not train on API inputs; retention is their
+   policy, not ours.
+2. **Your own agent's model provider** — sees whatever it recalls from your
+   brain, when it recalls it. Memory is only useful if a model can read it.
+3. **Anyone with your machine** — the brain is a file at
+   `~/.gbrain/brain.pglite`. Disk encryption is your operating system's job.
+
+**Browser path (Gemini Live), additionally**
+
+4. **Google** — hears the call.
+
+**Phone path (AgentPhone), additionally**
+
+5. **Retell AI** — hears the call, runs the conversation model, and **keeps
+   its own transcript that we cannot delete** (§2.2).
+6. **LiveKit** — carries the media.
+7. **The TTS vendor behind the chosen voice** — ElevenLabs, Cartesia, MiniMax,
+   OpenAI, Fish Audio or Inworld.
+8. **Retell's STT vendor** — not disclosed.
+
+**On recordings, today:** audio recording is a paid add-on that is not enabled
+on this account, so no recording exists for any call — verifiable on any call
+id with `npm run brain:status -- <callId>`, which returns
+`404 No recording available for this call`. If recording is ever turned on,
+outbound calls must be created with `disableRecording: true` to keep that true.
+This matters more than it sounds: AgentPhone documents the recording endpoint
+as a *"public bearer-link endpoint"*, so a recording that exists is a
+shareable URL.
 
 If you enable GBrain's optional cloud features later, add them to this list:
 configured embedding, reranking and synthesis providers receive text —
