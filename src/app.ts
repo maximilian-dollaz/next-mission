@@ -18,7 +18,9 @@ import {
   dropTask,
   editTask,
   getHandoff,
+  handoffFromBrief,
   latestHandoff,
+  type BriefLike,
 } from './handoff/index.js';
 import {
   DEFAULT_SUBJECT,
@@ -476,6 +478,37 @@ app.get('/mcp/info', (c) => c.json(mcpInfo(new URL(c.req.url).origin)));
 // any of it reach their agent: /mcp serves approved handoffs only, so these
 // routes are the entire path from "a call landed" to "an agent can work".
 // ─────────────────────────────────────────────────────────────
+
+/**
+ * The wire from a finished call to a reviewable brief: post the decision
+ * brief, get back a DRAFT handoff with its task set.
+ *
+ * A route rather than a direct import, so the call-end pipeline (chat 06)
+ * can reach it with one fetch and does not have to take a dependency on this
+ * module — and so the whole path can be exercised with curl in a demo.
+ */
+app.post('/api/handoff/from-brief', async (c) => {
+  const brief = (await c.req.json()) as BriefLike & { call_id?: string };
+  const id = brief.call_id ?? c.req.query('call_id');
+  if (!id) {
+    return c.json(
+      { error: 'bad_request', message: 'need a call_id, as ?call_id= or a call_id field' },
+      400
+    );
+  }
+  if (!brief?.lead_domino?.action) {
+    return c.json({ error: 'bad_request', message: 'body must be a decision brief' }, 400);
+  }
+  const handoff = await handoffFromBrief(brief, id);
+  return c.json(
+    {
+      ...handoff,
+      awaiting: 'human approval — no agent can see this yet',
+      approve_at: `POST ${new URL(c.req.url).origin}/api/handoff/${handoff.id}/approve`,
+    },
+    201
+  );
+});
 
 /** The brief to put on the approval screen. Draft or approved. */
 app.get('/api/handoff', async (c) => {

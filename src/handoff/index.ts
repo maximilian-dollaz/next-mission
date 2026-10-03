@@ -75,6 +75,24 @@ export interface BriefLike {
   gate?: { landed?: boolean };
 }
 
+/**
+ * Brief in, draft handoff stored. The whole wire from "a call landed" to
+ * "the human can approve it", in one call.
+ *
+ * This exists so the call-end pipeline needs one line and no knowledge of
+ * this module's internals:
+ *
+ *   await handoffFromBrief(brief, callId);
+ *
+ * It lands as a DRAFT. Nothing reaches an agent until the human approves.
+ */
+export async function handoffFromBrief(brief: BriefLike, id: string) {
+  const { buildHandoff } = await import('./decompose.js');
+  const { putHandoff } = await import('./store.js');
+  const handoff = await buildHandoff(fromBrief(brief, id));
+  return putHandoff(handoff);
+}
+
 export function fromBrief(brief: BriefLike, id: string): DecisionInput {
   const a = brief.lead_domino.action;
   return {
