@@ -12,6 +12,16 @@ import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { discovery } from 'mppx/hono';
 import { configReport, MissingConfigError } from './env.js';
+import { handleMcpRequest, mcpInfo } from './mcp/server.js';
+import {
+  approve,
+  dropTask,
+  editTask,
+  getHandoff,
+  handoffFromBrief,
+  latestHandoff,
+  type BriefLike,
+} from './handoff/index.js';
 import {
   DEFAULT_SUBJECT,
   appendTurn,
@@ -448,6 +458,85 @@ app.get('/api/library/export', async (c) => {
   const library = await exportLibrary(subjectId);
   c.header('Content-Disposition', `attachment; filename="next-mission-library-${subjectId}.json"`);
   return c.json(library);
+});
+
+// ─────────────────────────────────────────────────────────────
+// The handoff over MCP — src/mcp/server.ts
+//
+// A caller's own agent connects here and pulls the work. One line, no setup:
+//   claude mcp add --transport http next-mission https://<host>/mcp
+// ─────────────────────────────────────────────────────────────
+
+app.all('/mcp', (c) => handleMcpRequest(c.req.raw));
+
+app.get('/mcp/info', (c) => c.json(mcpInfo(new URL(c.req.url).origin)));
+
+// ─────────────────────────────────────────────────────────────
+// The approval gate — what chat 07's approval screen calls.
+//
+// The human scans the brief, edits what they want, approves. Only then does
+// any of it reach their agent: /mcp serves approved handoffs only, so these
+// routes are the entire path from "a call landed" to "an agent can work".
+// ─────────────────────────────────────────────────────────────
+
+/**
+ * The wire from a finished call to a reviewable brief: post the decision
+ * brief, get back a DRAFT handoff with its task set.
+ *
+ * A route rather than a direct import, so the call-end pipeline (chat 06)
+ * can reach it with one fetch and does not have to take a dependency on this
+ * module — and so the whole path can be exercised with curl in a demo.
+ */
+app.post('/api/handoff/from-brief', async (c) => {
+  const brief = (await c.req.json()) as BriefLike & { call_id?: string };
+  const id = brief.call_id ?? c.req.query('call_id');
+  if (!id) {
+    return c.json(
+      { error: 'bad_request', message: 'need a call_id, as ?call_id= or a call_id field' },
+      400
+    );
+  }
+  if (!brief?.lead_domino?.action) {
+    return c.json({ error: 'bad_request', message: 'body must be a decision brief' }, 400);
+  }
+  const handoff = await handoffFromBrief(brief, id);
+  return c.json(
+    {
+      ...handoff,
+      awaiting: 'human approval — no agent can see this yet',
+      approve_at: `POST ${new URL(c.req.url).origin}/api/handoff/${handoff.id}/approve`,
+    },
+    201
+  );
+});
+
+/** The brief to put on the approval screen. Draft or approved. */
+app.get('/api/handoff', async (c) => {
+  const id = c.req.query('id');
+  const h = id ? await getHandoff(id) : await latestHandoff();
+  if (!h) return c.json({ error: 'not_found', message: 'no handoff yet' }, 404);
+  return c.json(h);
+});
+
+/** Edit one task before approving. Refused once approved. */
+app.patch('/api/handoff/:id/tasks/:taskId', async (c) => {
+  const patch = await c.req.json();
+  const { task } = await editTask(c.req.param('id'), c.req.param('taskId'), patch);
+  return c.json(task);
+});
+
+/** Cut a task the human does not want. Refused once approved. */
+app.delete('/api/handoff/:id/tasks/:taskId', async (c) =>
+  c.json(await dropTask(c.req.param('id'), c.req.param('taskId')))
+);
+
+/** The product moment. After this, and only after this, agents can see it. */
+app.post('/api/handoff/:id/approve', async (c) => {
+  const h = await approve(c.req.param('id'));
+  return c.json({
+    ...h,
+    now_reachable_at: `${new URL(c.req.url).origin}/mcp`,
+  });
 });
 
 export default app;
