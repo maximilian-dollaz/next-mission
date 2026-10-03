@@ -1,14 +1,19 @@
 /**
  * System-instruction seam.
  *
- * The conversation protocol is chat 02's work, landing at
- * `docs/research/02-decision-protocol.md`. This file reads that one path and
- * falls back to a placeholder so the voice engine can be built and tested
- * before it exists. Nothing here invents protocol content.
+ * Precedence, highest first:
+ *   1. `VOICE_INSTRUCTION=placeholder` — forces the short test prompt.
+ *   2. `src/voice/prompt/system-prompt.md` — the boiled prompt (normal case).
+ *   3. `docs/research/02-decision-protocol.md` — chat 02's protocol document.
+ *   4. The built-in placeholder.
  *
- * When 02 lands, no code changes: `loadSystemInstruction()` picks the file up
- * and `source` flips from `placeholder` to `protocol-file`. The page shows which
- * one is live so nobody demos the placeholder by accident.
+ * Any of those files may delimit the part that is actually the prompt with
+ * SYSTEM-INSTRUCTION markers; without them the whole file is used.
+ *
+ * The boiled prompt exists because the protocol document is a *design* document
+ * — research citations, worked examples, open questions — and sending all 73k
+ * chars of it as a system instruction cost a measured ~2s per turn. The boiled
+ * version keeps v1's proven voice and fits the decision structure inside it.
  *
  * This module only ever READS `docs/research/`. That directory belongs to 02.
  */
@@ -21,7 +26,17 @@ import type { PacingConfig } from './pacing.ts';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-/** The one file the real conversation protocol is read from. */
+/**
+ * The boiled prompt: v1's proven voice with the decision structure fitted inside
+ * it. Takes precedence over the protocol document when it exists.
+ *
+ * Derived from the live v1 Retell agent's system prompt (8.2k chars, 112 calls)
+ * plus `docs/findings/01-conversation-principles.md` and the structural moves in
+ * `docs/research/02-decision-protocol.md`. Owned by chat 04.
+ */
+export const BOILED_PROMPT_PATH = resolve(here, 'prompt/system-prompt.md');
+
+/** Chat 02's protocol document. Read-only here; used when no boiled prompt exists. */
 export const PROTOCOL_PATH = resolve(here, '../../docs/research/02-decision-protocol.md');
 
 /** Below this many characters we treat the file as a stub, not a protocol. */
@@ -50,7 +65,11 @@ const END_MARKER = '<!-- SYSTEM-INSTRUCTION:END -->';
  */
 const WARN_CHARS = 20_000;
 
-export type InstructionSource = 'protocol-file' | 'protocol-file-marked' | 'placeholder';
+export type InstructionSource =
+  | 'boiled-prompt'
+  | 'protocol-file'
+  | 'protocol-file-marked'
+  | 'placeholder';
 
 export interface LoadedInstruction {
   text: string;
@@ -114,8 +133,28 @@ If the person interrupts you, stop immediately and listen. They have the floor.`
 }
 
 /**
- * Build the full system instruction: protocol (real or placeholder) plus the
- * pacing-derived delivery block.
+ * Read a file and return the marked region if it has one, the whole trimmed file
+ * otherwise. Returns undefined when the file is missing or too short to be real.
+ */
+function readMarked(path: string): string | undefined {
+  let raw: string;
+  try {
+    raw = readFileSync(path, 'utf8').trim();
+  } catch {
+    return undefined;
+  }
+  const begin = raw.indexOf(BEGIN_MARKER);
+  const end = raw.indexOf(END_MARKER);
+  if (begin !== -1 && end > begin) {
+    const inner = raw.slice(begin + BEGIN_MARKER.length, end).trim();
+    return inner.length >= MIN_PROTOCOL_CHARS ? inner : undefined;
+  }
+  return raw.length >= MIN_PROTOCOL_CHARS ? raw : undefined;
+}
+
+/**
+ * Build the full system instruction: prompt (boiled, protocol, or placeholder)
+ * plus the pacing-derived delivery block.
  */
 export function loadSystemInstruction(pacing: PacingConfig): LoadedInstruction {
   const delivery = deliveryDirectives(pacing);
@@ -132,6 +171,16 @@ export function loadSystemInstruction(pacing: PacingConfig): LoadedInstruction {
       text: `${PLACEHOLDER}\n\n${delivery}`,
       source: 'placeholder',
       note: 'forced by VOICE_INSTRUCTION=placeholder',
+    };
+  }
+
+  // Highest precedence: the boiled prompt.
+  const boiled = readMarked(BOILED_PROMPT_PATH);
+  if (boiled) {
+    return {
+      text: `${boiled}\n\n${delivery}`,
+      source: 'boiled-prompt',
+      path: BOILED_PROMPT_PATH,
     };
   }
 

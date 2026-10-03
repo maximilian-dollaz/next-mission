@@ -52,7 +52,15 @@ check('undefined resolves to PATIENT', presetFromEnv(undefined) === PATIENT);
 
 console.log('\n--- instruction seam ---');
 const instr = loadSystemInstruction(PATIENT);
-check('source reported', instr.source === 'placeholder' || instr.source === 'protocol-file', instr.source);
+check('boiled prompt is the live source', instr.source === 'boiled-prompt', instr.source);
+check('boiled prompt is compact', instr.text.length < 20_000, `${instr.text.length} chars — 73k protocol doc cost ~2s/turn`);
+check('silence rule present', /Silence is not your turn/.test(instr.text));
+check('one-question rule present', /One question per turn/.test(instr.text));
+check('north-star-before-comparing present', /north star/i.test(instr.text));
+check('monotonic-narrowing invariant present', /only ever goes down|count only goes down/i.test(instr.text));
+check('completion gate present', /commitment verb/i.test(instr.text));
+check('named-object handoff present', /named object/i.test(instr.text));
+check('no-invented-options rule present', /never introduce an option|never add an option/i.test(instr.text));
 check('silence directive present', /Silence is allowed/.test(instr.text));
 check('silence threshold interpolated', instr.text.includes('1.2 seconds'), 'reflects the live pacing value');
 check('hesitation directive present', /trust the\nvoice/.test(instr.text));
