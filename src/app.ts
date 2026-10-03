@@ -56,10 +56,17 @@ import {
   usdPrecise,
 } from './mpp/index.js';
 import { SESSION_PHASES, type NewDecision, type SessionPhase } from './types.js';
+import { web } from './web/index.js';
 
 export const app = new Hono();
 
 app.use('*', cors());
+
+// The front door: the page, the vCard, signup, the inbound webhook.
+// Mounted first so GET / can serve HTML to a browser; it calls next() for
+// anything that is not a browser, which falls through to the service
+// document below.
+app.route('/', web);
 
 /** Parse a JSON body, treating absent or malformed bodies as `{}`. */
 async function body<T extends object>(c: Context): Promise<Partial<T>> {
