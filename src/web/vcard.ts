@@ -51,10 +51,16 @@ export function vcard(number: string = AGENT_NUMBER): string {
  * to Files and the contact is never offered, which reads to the user as
  * "Add to Contacts did nothing". `?inline=0` forces the old behaviour.
  */
-export function vcardHeaders(inline = true): Record<string, string> {
+export function vcardHeaders(_inline = true): Record<string, string> {
+  // NO Content-Disposition. This is deliberate and hard-won.
+  //
+  // iOS Safari shows the Add-Contact sheet for a text/vcard response reached
+  // by a direct tap. `attachment` sends it to Files and nothing appears;
+  // `inline; filename=...` is also unreliable across versions. Omitting the
+  // header entirely is the configuration that works. Do not add one back.
   return {
     'Content-Type': 'text/vcard; charset=utf-8',
-    'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename="${VCARD_FILENAME}"`,
-    'Cache-Control': 'public, max-age=300',
+    'Cache-Control': 'no-store',
   };
 }
+
