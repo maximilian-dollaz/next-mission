@@ -89,7 +89,7 @@ app.onError((err, c) => {
 // Always-on
 // ─────────────────────────────────────────────────────────────
 
-app.get('/service', (c) =>
+app.get(['/', '/service'], (c) =>
   c.json({
     service: 'next-mission',
     what: 'A private voice agent that walks a human to a decision they believe, then hands their own agent an executable brief.',
