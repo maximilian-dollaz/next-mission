@@ -11,7 +11,7 @@
  * on a laptop and a user on a phone get the same page.
  */
 
-import { AGENT_NUMBER } from './vcard.js';
+import { AGENT_NUMBER, CONTACT_NAME, VCARD_FILENAME } from './vcard.js';
 import { formatForHumans } from './phone.js';
 
 export interface PageOptions {
@@ -145,7 +145,7 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
       <input id="p" name="phone" type="tel" inputmode="tel"
              autocomplete="tel" enterkeyhint="go" placeholder="(555) 123-4567"
              aria-describedby="e">
-      <button id="go" type="submit">Add Next Mission to my contacts</button>
+      <button id="go" type="submit">Add ${CONTACT_NAME} to my contacts</button>
       <p class="err" id="e" role="alert"></p>
     </form>
     <p class="note">Your number is the only thing we store, and it is stored
@@ -159,7 +159,7 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
     <p class="lede" style="margin-bottom:1.5rem">Tap to call, or add the contact
       so it is there when you need it.</p>
 
-    <a id="vcf" href="/next-mission.vcf" download="Next Mission.vcf">
+    <a id="vcf" href="/next-mission.vcf" download="${VCARD_FILENAME}">
       <button class="ghost" type="button">Add to contacts</button>
     </a>
 
@@ -238,7 +238,7 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
       })
       .finally(function () {
         go.disabled = false;
-        go.textContent = 'Add Next Mission to my contacts';
+        go.textContent = 'Add ${CONTACT_NAME} to my contacts';
       });
   });
 })();

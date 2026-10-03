@@ -47,6 +47,11 @@ const KEYS = [
   'SUPABASE_SERVICE_ROLE_KEY',
   'PUBLIC_BASE_URL',
   'LOG_LEVEL',
+  // The front door: the inbound webhook's two ways of authenticating a
+  // payload, and the number the vCard installs.
+  'RETELL_API_KEY',
+  'WEBHOOK_SHARED_SECRET',
+  'AGENT_PHONE_NUMBER',
 ] as const;
 
 const TARGETS = ['production', 'preview', 'development'];
