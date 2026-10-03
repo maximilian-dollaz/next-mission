@@ -13,7 +13,8 @@ import { optional } from '../env.js';
 export const AGENT_NUMBER = optional('AGENT_PHONE_NUMBER', '+12722297451');
 
 /** The name that shows up in the caller's phone. The company is the product. */
-export const CONTACT_NAME = 'Next Mission';
+export const CONTACT_NAME = 'Habibi';
+export const CONTACT_ORG = 'Next Mission';
 
 export const VCARD_FILENAME = `${CONTACT_NAME}.vcf`;
 
@@ -32,8 +33,9 @@ export function vcard(number: string = AGENT_NUMBER): string {
       // N is Family;Given;Middle;Prefix;Suffix — a single name goes first.
       `N:${CONTACT_NAME};;;;`,
       `FN:${CONTACT_NAME}`,
+      `ORG:${CONTACT_ORG}`,
       `TEL;TYPE=CELL,VOICE:${number}`,
-      `NOTE:${esc('Call to think something through. It already knows you — your number is your login.')}`,
+      `NOTE:${esc('It is in your moments of decision that your destiny is shaped.')}`,
       'END:VCARD',
     ].join(CRLF) + CRLF
   );
