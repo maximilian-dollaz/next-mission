@@ -254,7 +254,10 @@ const FROZEN = {
   end_call_after_silence_ms: 120000,
   enable_backchannel: false,
   backchannel_frequency: 0,
-  denoising_mode: 'noise-cancellation',
+  // The stronger of the two modes. Call 2 transcribed words Max never said
+  // ("Is on that website"), and while that noise streams in the agent never sees
+  // him stop, so it never takes a turn. Verified real: PATCHed, then GET back.
+  denoising_mode: 'noise-and-background-speech-cancellation',
   voice_speed: 0.95,
 } as const;
 
