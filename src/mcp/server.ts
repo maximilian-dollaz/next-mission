@@ -370,16 +370,34 @@ export async function handleMcpRequest(req: Request): Promise<Response> {
   }
 }
 
-/** What `/mcp/info` reports — how to connect, and which backend is live. */
+/**
+ * What `/mcp/info` reports: how to connect, in two forms a stranger can use
+ * without reading anything else, and which backend is live.
+ *
+ * The `mcp_config` block is the demo. A judge drops it into their own client
+ * — Claude Code, Muse, Intuitive, anything speaking MCP — in one move. No
+ * install, no credentials of the human's, no setup.
+ */
 export function mcpInfo(baseUrl: string) {
+  const url = `${baseUrl.replace(/\/$/, '')}/mcp`;
   return {
     transport: 'streamable-http',
-    url: `${baseUrl.replace(/\/$/, '')}/mcp`,
-    connect: `claude mcp add --transport http next-mission ${baseUrl.replace(/\/$/, '')}/mcp`,
+    url,
+    // One line, for a client with a CLI.
+    connect: `claude mcp add --transport http next-mission ${url}`,
+    // Copy-pasteable, for a client configured by file.
+    mcp_config: {
+      mcpServers: {
+        'next-mission': { type: 'http', url },
+      },
+    },
     tools: ['get_decision', 'list_tasks', 'claim_task', 'complete_task', 'add_context'],
+    start_with: 'get_decision',
     stateless: true,
+    approval_required: true,
+    serves: 'approved briefs only — a draft the human has not signed off on is invisible here',
     task_store: backend(),
     note:
-      'The context library is GBrain; this is a remote door onto one handoff out of it, carrying the task verbs GBrain\'s frozen seven do not express. Not a system of record.',
+      'The context library is GBrain; this is a remote door onto one approved handoff out of it, carrying the task verbs GBrain\'s frozen seven do not express. Not a system of record.',
   };
 }

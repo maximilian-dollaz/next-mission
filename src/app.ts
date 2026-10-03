@@ -14,6 +14,13 @@ import { discovery } from 'mppx/hono';
 import { configReport, MissingConfigError } from './env.js';
 import { handleMcpRequest, mcpInfo } from './mcp/server.js';
 import {
+  approve,
+  dropTask,
+  editTask,
+  getHandoff,
+  latestHandoff,
+} from './handoff/index.js';
+import {
   DEFAULT_SUBJECT,
   appendTurn,
   createSession,
@@ -461,5 +468,42 @@ app.get('/api/library/export', async (c) => {
 app.all('/mcp', (c) => handleMcpRequest(c.req.raw));
 
 app.get('/mcp/info', (c) => c.json(mcpInfo(new URL(c.req.url).origin)));
+
+// ─────────────────────────────────────────────────────────────
+// The approval gate — what chat 07's approval screen calls.
+//
+// The human scans the brief, edits what they want, approves. Only then does
+// any of it reach their agent: /mcp serves approved handoffs only, so these
+// routes are the entire path from "a call landed" to "an agent can work".
+// ─────────────────────────────────────────────────────────────
+
+/** The brief to put on the approval screen. Draft or approved. */
+app.get('/api/handoff', async (c) => {
+  const id = c.req.query('id');
+  const h = id ? await getHandoff(id) : await latestHandoff();
+  if (!h) return c.json({ error: 'not_found', message: 'no handoff yet' }, 404);
+  return c.json(h);
+});
+
+/** Edit one task before approving. Refused once approved. */
+app.patch('/api/handoff/:id/tasks/:taskId', async (c) => {
+  const patch = await c.req.json();
+  const { task } = await editTask(c.req.param('id'), c.req.param('taskId'), patch);
+  return c.json(task);
+});
+
+/** Cut a task the human does not want. Refused once approved. */
+app.delete('/api/handoff/:id/tasks/:taskId', async (c) =>
+  c.json(await dropTask(c.req.param('id'), c.req.param('taskId')))
+);
+
+/** The product moment. After this, and only after this, agents can see it. */
+app.post('/api/handoff/:id/approve', async (c) => {
+  const h = await approve(c.req.param('id'));
+  return c.json({
+    ...h,
+    now_reachable_at: `${new URL(c.req.url).origin}/mcp`,
+  });
+});
 
 export default app;

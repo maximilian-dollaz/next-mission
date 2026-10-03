@@ -15,8 +15,13 @@
 
 export { buildHandoff, decompose, openTasks, reassign, renderSplit } from './decompose.js';
 export {
+  approve,
   backend,
+  dropTask,
+  editTask,
+  getApproved,
   getHandoff,
+  latestApproved,
   latestHandoff,
   markSettled,
   putHandoff,
@@ -33,6 +38,7 @@ export {
   TASK_STATUSES,
   type DecisionInput,
   type Handoff,
+  type HandoffStatus,
   type Task,
   type TaskDraft,
   type TaskOwner,
