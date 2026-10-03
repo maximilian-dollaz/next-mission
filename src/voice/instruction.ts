@@ -124,6 +124,17 @@ export function loadSystemInstruction(pacing: PacingConfig): LoadedInstruction {
   let marked = false;
   let note: string | undefined;
 
+  // Escape hatch: force the short placeholder regardless of what is on disk.
+  // Needed to isolate how much of the response latency is the prompt's size,
+  // and as a fallback if the protocol file is too large to demo with.
+  if (process.env.VOICE_INSTRUCTION === 'placeholder') {
+    return {
+      text: `${PLACEHOLDER}\n\n${delivery}`,
+      source: 'placeholder',
+      note: 'forced by VOICE_INSTRUCTION=placeholder',
+    };
+  }
+
   try {
     const raw = readFileSync(PROTOCOL_PATH, 'utf8').trim();
 

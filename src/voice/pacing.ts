@@ -16,16 +16,15 @@ import { EndSensitivity, StartSensitivity } from '@google/genai';
  * How end-of-turn is decided.
  *
  * - `server`: Gemini's own voice-activity detection commits the turn after
- *   `silenceBeforeAgentSpeaksMs` of quiet. Lower latency, far simpler. The API
- *   may clamp very long silence windows, so this caps how patient we can be.
+ *   `silenceBeforeAgentSpeaksMs` of quiet. Simpler, and verified to accept holds
+ *   of at least 3000 ms — so patient pacing does not require client mode.
  *
  * - `client`: we disable server VAD and send explicit activityStart/activityEnd
- *   signals from our own energy gate. Nothing clamps the hold time, so genuinely
- *   long thinking pauses (5s, 10s) are possible. Costs a little latency and more
- *   moving parts.
+ *   signals from our own energy gate. Needed for two things only: holds longer
+ *   than the service will take, and changing the silence window mid-session
+ *   (`realtimeInputConfig` is frozen at connect, so server mode cannot).
  *
- * Default is `server`. Switch to `client` if B13's long pauses turn out to be
- * longer than the API will honour — see the note in `session.ts`.
+ * Default is `server`.
  */
 export type TurnDetection = 'server' | 'client';
 
@@ -78,6 +77,20 @@ export interface PacingConfig {
 
   /** See {@link TurnDetection}. */
   turnDetection: TurnDetection;
+
+  /**
+   * Thinking budget in tokens before the model speaks. `0` disables thinking,
+   * `-1` is automatic (the model's default).
+   *
+   * This is the largest single latency lever on the native-audio model: the
+   * model thinks before it talks, and in a spoken conversation that silence is
+   * dead air. Measured on this build, automatic thinking roughly doubles time
+   * to first sound.
+   *
+   * Reflective questions do not need a scratchpad — the protocol's work is
+   * asking one short question, not solving anything — so `0` is the default.
+   */
+  thinkingBudget: number;
 
   /**
    * Energy level (0..1 RMS) above which a mic frame counts as speech.
@@ -142,6 +155,7 @@ export const PATIENT: PacingConfig = {
   maxAgentTurnSeconds: 20,
   latencyTargetMs: 1500,
   turnDetection: 'server',
+  thinkingBudget: 0,
   speechEnergyThreshold: 0.012,
   affectiveDialog: true,
   proactiveAudio: true,

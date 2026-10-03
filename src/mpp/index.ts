@@ -80,6 +80,22 @@ export function flatSettlementUsd(): string {
   return usd(Math.max(Number(env.mppSettlementUsd()), SPT_MINIMUM_USD));
 }
 
+/**
+ * The hostname agents reach this server on, from MPP_REALM or PUBLIC_BASE_URL.
+ * Undefined locally, where the request hostname is already right.
+ */
+export function publicHost(): string | undefined {
+  const explicit = optionalRaw('MPP_REALM');
+  if (explicit) return explicit;
+  const base = optionalRaw('PUBLIC_BASE_URL');
+  if (!base) return undefined;
+  try {
+    return new URL(base).host;
+  } catch {
+    return base.replace(/^https?:\/\//, '').replace(/\/.*$/, '') || undefined;
+  }
+}
+
 export function stablecoinEnabled(): boolean {
   return optionalRaw('TEMPO_DEPOSIT_ADDRESS') !== undefined;
 }
@@ -121,9 +137,18 @@ function build() {
     ...(depositAddress ? { depositAddresses: { tempo: depositAddress } } : {}),
   });
 
+  // Realm must match the host an agent actually reached, or the challenge is
+  // rejected as bound to the wrong server. Left to itself, mppx picks up
+  // VERCEL_URL, which is the per-deployment hostname rather than the stable
+  // alias, so every production challenge announced the wrong realm. Deriving
+  // it from PUBLIC_BASE_URL fixes that; with no PUBLIC_BASE_URL set (local
+  // dev) mppx falls back to the request hostname, which is already correct.
+  const realm = publicHost();
+
   const mppx = Mppx.create({
     methods: stripeMachinePayments.defaultMethods(),
     secretKey: mppSecretKey,
+    ...(realm ? { realm } : {}),
   });
 
   return mppx;

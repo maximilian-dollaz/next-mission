@@ -132,6 +132,10 @@ export class VoiceSession {
       // Hear hesitation, not just words. Native-audio only. Verified accepted.
       enableAffectiveDialog: p.affectiveDialog,
 
+      // Biggest latency lever on this model. Thinking before speaking is dead
+      // air in a spoken conversation; 0 disables it. See PacingConfig.
+      thinkingConfig: { thinkingBudget: p.thinkingBudget },
+
       // NOTE: `proactivity: { proactiveAudio: ... }` is deliberately NOT sent.
       // It is in the SDK's typings and would typecheck, but the service rejects
       // it outright on this model:

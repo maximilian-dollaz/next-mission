@@ -11,31 +11,34 @@ Reconciliation and the four places I disagree with them are in §7.
 
 ---
 
-## Can it land a real decision in 90 seconds? Yes — on two conditions.
+## Cold-start live demo: yes, in ~110 seconds. Read §1.6, not §1.5.
 
-Added after the orchestrator's update: the demo is a live decision on stage. Full answer and
-the second mode are in **§1.5**. The short version, because the clock matters:
+**Revised 2026-10-03 after Max rejected the pre-loaded-library condition. He is right and I
+had an error in my arithmetic; the correction is in §1.6.1. §1.6 supersedes §1.5.1–§1.5.5 and
+§1.5.7. §1.5.6 — do not fake the landing — stands unchanged and matters more in a cold start,
+not less.**
 
-**90 seconds cannot load a problem and decide it. It can decide a problem that is already
-loaded.** Loading costs 8–20 minutes (Phases 0–5); the engine itself is cheap — five one-line
-questions in the worked example. So the two conditions are:
-
-1. **Max calls as a returning user with his context library loaded.** The library carries
-   Phases 1–5. This is not a shortcut around the product — it *is* D1, the thing the product
-   claims ("it speaks to you as if it's known you for years"), finally doing visible work. A
-   demo of a cold stranger deciding in 90 seconds would be a lie. A returning caller deciding
-   in 90 seconds is the honest claim and the better demo.
-2. **He brings a decision that is already a fork** — two named options, not an open-ended
-   situation. The opening question forces this in ~12 seconds (§1.5.2), and it is the one
-   thing he controls by choosing what to bring.
-
-**Where I'd push back:** the risk on stage is not running long, it is the gate not passing —
-and the fix is to design that failure rather than hope. If the human doesn't land, the agent
-must not fake it. It should name what's unsettled and emit a brief whose action is *resolving
-that*. On stage, an agent that declines to claim a landing it didn't get is a stronger
-demonstration of A3 than a smooth fake one. §1.5.6. **Rehearse it three times on real
-decisions before 17:00** — the sprint lives or dies on the sidecar picking the right single
-engine move, and that is only visible in rehearsal.
+- **My error:** I claimed loading a problem costs 8–20 minutes. That is the cost of the agent
+  *excavating* a tangled problem question by question. It is not the cost of a human
+  *delivering* a small one. Doc 01's own evidence makes this obvious in hindsight: the
+  ≥130-word dump that predicted every decision that landed is **52 seconds of speech.** For a
+  deliberately simple fork, a complete dump is 60–90 words — **24 to 36 seconds.** Cold start
+  is viable and I should have modelled it.
+- **The clock:** a complete cold-start run — dump, north star, one engine move, commitment,
+  if-then cue, and the full gate — is **~110 seconds** including VAD and cold-start latency
+  (§1.6.2). 90 seconds fits only by dropping either the if-then cue or the offered exit, and
+  both are load-bearing. **Take the full 2-minute slot and target 110.**
+- **The one dial he controls is the problem he brings**, and it moves the total almost
+  linearly: a 60-word dump lands ~95 s, 90 words ~108 s, 130 words ~124 s. So the spec of what
+  to bring *is* the clock spec. **§1.6.4 is one paragraph, written to be read once and picked
+  against — it is the highest-value thing in this document for the next three hours.**
+- **Cold start is the better demo and he's right about that too.** It can't be accused of
+  being pre-baked, and it exercises Phase 0, which is the actual product. What it costs: a
+  thinner brief and live ASR risk on the first turn.
+- **One real bug my own spec had:** §1.5.7's 1.2–1.5 s VAD window will cut him off mid-dump,
+  because people pause inside a 35-second monologue. The window must be phase-dependent —
+  generous through the dump, tight afterwards. §1.6.5. Eleven interrupt protests in the v1
+  corpus say this is the failure most likely to wreck the demo live.
 
 ---
 
@@ -87,9 +90,9 @@ changes the code.
 
 Ten phases, 0–9. Phases 0–5 load the problem; 6–7 collapse it; 8–9 emit the work.
 
-**This is full mode — 10–25 minutes, the real product.** Sprint mode (~90 s, for the live
-demo) is the same engine entered at Phase 6 with the loading sourced from the context
-library; it is specified in §1.5 and it changes nothing below.
+**This is full mode — 10–25 minutes, the real product.** Sprint mode (~110 s, cold start, for
+the live demo) is the same engine with Phases 1–5 collapsed into a single bounded dump; it is
+specified in **§1.6** and it changes nothing below.
 
 ### 1.0 Nothing is scripted — how the agent speaks
 
@@ -464,7 +467,13 @@ phase earlier replaces their decision with yours.
 
 ---
 
-## 1.5 Sprint mode — ~90 seconds, for the live demo
+## 1.5 Sprint mode — first pass (**partly superseded — build from §1.6**)
+
+> **Do not build from this section.** §1.5.1–§1.5.5 and §1.5.7 assumed a pre-loaded context
+> library; Max rejected that and the demo is a cold start. **§1.6 is the build spec.** Kept
+> here because three parts are still live and §1.6 refers back to them: **§1.5.5** (the
+> engine-move priority list), **§1.5.6** (do not fake the landing — unchanged, and more
+> important cold), and **§1.5.8** (what you give up).
 
 Everything above is **full mode**: 10–25 minutes, the real product. Sprint mode is the same
 mechanism, aggressively truncated, for the stage. One engine, two clocks.
@@ -614,12 +623,142 @@ question afterwards.
 - **Margin.** Five turns at 90 seconds has no slack. One clarifying exchange, one ASR repair,
   one long pause and it is 120 seconds. Plan the demo at 90 and be ready for 120.
 
-### 1.5.9 Rehearsal, because this is the actual deliverable
+### 1.5.9 Rehearsal (superseded by §1.6.6)
 
 Run it three times before 17:00, on three real decisions, and log per run: which engine move
 the sidecar chose, wall-clock to the commitment sentence, and which gate signals fired. If
 two of three runs pick the wrong move or overrun 110 seconds, the thing to change is the
 move-priority list in §1.5.5, not the clock.
+
+---
+
+## 1.6 Sprint mode, revised for cold start — **this is the build spec**
+
+**Supersedes §1.5.1–§1.5.5 and §1.5.7.** No context library, no returning-user assumption.
+Max states the problem live. §1.5.6 (do not fake the landing) is unchanged and still binds.
+This is the section chat 05 should install against.
+
+### 1.6.1 The correction
+
+I said loading a problem costs 8–20 minutes. That conflated two different costs:
+
+| | What it is | Cost |
+|---|---|---|
+| **Excavation** | the agent pulling the ledger out question by question, ~15–20 s per exchange, 20+ exchanges on a tangled problem | **8–20 min** — real, and what the v1 corpus shows |
+| **Delivery** | the human saying it all in one monologue | **the length of the monologue** |
+
+Sprint mode needs delivery, not excavation. And delivery is cheap: doc 01's threshold dump —
+≥130 words, which predicted every v1 decision that landed — is **52 seconds of speech** at a
+normal 150 wpm. A deliberately simple fork needs 60–90 words, so **24–36 seconds.**
+
+The thing that makes delivery work instead of excavation is Phase 0 doing exactly its job:
+**instruct the dump, name its parts, bound it out loud, then go silent.** The time bound is
+the mechanism that replaces the library. Say the number:
+
+> **Specimen:** "Give me the whole thing in about thirty seconds — what you're deciding
+> between, and what's pulling each way. I'll stay quiet."
+
+~22 words. Instructs rather than invites, names its parts, bounds the clock, promises silence.
+Generated fresh per §1.0, but those four properties are the spec.
+
+### 1.6.2 Where the 110 seconds goes
+
+Agent turns are **8–12 words, 3–5 s** in sprint. The 40-word cap in §1 is a ceiling, not a
+target; short questions are the whole reason this fits.
+
+| Clock | Who | Turn | Buys |
+|---|---|---|---|
+| 0–9 s | agent | bounded dump instruction (~22 w) | Phase 0 |
+| 9–45 s | **human** | **the dump (~90 w)** | decision-as-question, options, constraint, whose voice, what's tried |
+| 45–49 s | agent | *"If the right one works, what's different next week?"* | — |
+| 49–61 s | human | answer | **north star + stakes** (Phases 2–3 folded) |
+| 61–65 s | agent | the one engine move, chosen per §1.5.5's priority list | — |
+| 65–78 s | human | answer | one option standing (Phases 5–7) |
+| 78–81 s | agent | *"Finish it — I'm going to…"* | — |
+| 81–88 s | human | the sentence | **S1, S2** |
+| 88–91 s | agent | the offered exit, from their own stakes answer | — |
+| 91–99 s | human | answer | **S4 — the landing, tested** |
+| 99–102 s | agent | *"When — what's happening right before?"* | — |
+| 102–108 s | human | answer | the if-then cue |
+| on hangup | — | brief renders on screen | the handoff |
+
+**+ ~3 s** first-turn cold-start latency and **~6 s** total VAD settling across five short
+turns → **~117 s worst case, ~108 s if it runs clean.**
+
+Six agent turns, ~70 words of agent speech in total. The human talks for roughly 75 of the
+110 seconds, which is the correct ratio and the opposite of v1's failure.
+
+### 1.6.3 The dial: the dump length sets the total, almost linearly
+
+| Dump | Spoken | Total run | Fits a 2-min slot with… |
+|---|---|---|---|
+| 60 words | 24 s | **~95 s** | 25 s for framing and the brief on screen |
+| 90 words | 36 s | **~108 s** | 12 s — tight, call-is-the-demo |
+| 130 words | 52 s | **~124 s** | nothing. Over slot |
+
+Every other term is fixed by the protocol. **The problem he picks is the clock.** If the
+2-minute slot has to also carry a sentence of framing and a look at the brief, he needs a
+60–75 word problem, which is §1.6.4's lower bound.
+
+### 1.6.4 **The decision to bring — the spec**
+
+> Bring a **two-option fork you already feel both sides of, that turns on two things at
+> most** — three if one of them is obviously equal on both sides and can be waved away in a
+> breath. Aim for a **60/40 lean, not 90/10 and not 50/50**: enough tension that the landing
+> is real, enough lean that a single question can resolve it. You must be able to state the
+> whole thing in **under 90 words, in about thirty seconds, with no backstory** — the test is
+> that you never say "because" more than once and you never name a person, company or project
+> the room hasn't already heard of. It must be **genuinely undecided right now** (if it
+> isn't, the gate will pass hollow and anyone sharp will read it as theatre), and it should be
+> **reversible** — a two-way door decided in ninety seconds reads as decisive, an
+> irreversible one reads as reckless. **What blows the budget:** three or more live options;
+> four or more criteria; anything that needs another person's motives ("how my cofounder
+> would feel" is a column you can't evaluate without a conversation you haven't had);
+> anything resting on a number you'd have to recall or estimate out loud; anything where the
+> real question is underneath the stated one, because the sprint has no Phase 1 split and
+> will decide the surface.
+
+Shapes that work: which of two things to ship first; which of two people to call first;
+whether to do X tonight or tomorrow morning; which of two framings to lead with. Shapes that
+don't: whether to take a job, how to price something, anything involving the cofounder,
+anything you've been chewing on for months — those are full-mode decisions and they are the
+*reason* full mode exists.
+
+**On picking a decision about the hackathon itself:** it is the most available honest option
+and it demos well. It also risks reading as cute to a judge. That is a taste call, so it is
+yours, but the shape spec above is what matters, not the subject.
+
+### 1.6.5 Config — the VAD fix is mandatory
+
+**§1.5.7's flat 1.2–1.5 s window is a bug in a cold start.** People pause inside a 35-second
+monologue, and the v1 corpus has 11 interrupt protests — including *"I said hang on. I said
+hang on"* — proving this is the failure that actually happens. Make the window
+**phase-dependent**:
+
+| Phase | VAD window | Why |
+|---|---|---|
+| **The dump** (0–45 s) | **3.5–4 s, plus the verbal cue** | A cut-off here kills the demo outright. This is the one turn where being wrong is unrecoverable, so pay the 4 s |
+| **Everything after** | **1.2–1.5 s, no soft check-in** | Answers are short and he knows what's coming. The check-in costs a turn and 3 s |
+
+Also: **verbal handoff cue on** (doc 02 §2.2b) — "done" / "that's it" short-circuits the dump
+wait, and it is the thing that makes a 4 s window cost nothing in practice. Teach it in the
+opening turn or not at all; one clause is enough. And **pre-warm the socket before walking
+on** — 3 s of silence opening the demo is the worst 3 s available.
+
+Everything else from §1.5.7 holds: brief generated post-call and rendered on screen, not read
+back on the call.
+
+### 1.6.6 Rehearsal — the actual deliverable
+
+Three runs before 17:00, on three different real decisions that each satisfy §1.6.4. Log per
+run: **words in the dump, wall-clock to the commitment sentence, which engine move the
+sidecar picked, which gate signals fired.** Then:
+
+- Two of three runs over 115 s → the problems are too big. Tighten to a 60-word dump.
+- The sidecar picks a 3-item move when a free deletion was available → fix §1.5.5's priority
+  list, not the clock.
+- Gate fails on a run → good. That is the §1.5.6 path and you want to have seen it once
+  before a judge does.
 
 ---
 
@@ -1165,10 +1304,10 @@ sourced, the *priority order* is an engineering judgment derived from the item-c
 the first thing to tune on a real call. None of the sequencing or the generation rules has
 been tested on anyone.
 
-**On the 90-second budget specifically:** §1.5.3 is arithmetic, not measurement — five turns
-at observed speech rates, plus the VAD and cold-start numbers from doc 02 §2.4. The claim it
-rests on is structural and I'm confident in it (loading is expensive, collapsing is cheap, and
-the v1 corpus shows a real three-option decision collapsing in five questions). The claim it
-does *not* support is that any particular person will land in 90 seconds on any particular
-night. That is what §1.5.9's three rehearsal runs are for, and if two of three overrun, trust
-the stopwatch over this document.
+**On the sprint budget specifically:** §1.6.2 is arithmetic, not measurement — six agent turns
+at 150 wpm, plus the VAD and cold-start numbers from doc 02 §2.4. The structural claim behind
+it is sound (the human talks for ~75 of the 110 seconds; the engine is five short questions).
+What it does *not* support is that any particular person lands in 110 seconds on any
+particular night. §1.6.6's three rehearsal runs are the measurement; **trust the stopwatch
+over this document.** Note also that my first pass got this materially wrong in one direction
+(§1.6.1) — treat the revised numbers as better, not as settled.
