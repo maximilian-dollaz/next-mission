@@ -1,0 +1,30 @@
+Voice Agent Prototype: Private Contact Library
+
+2026-10-03 · 08:47–08:50
+
+Designing a Private Voice Agent
+Concept and requirements for a private voice agent that creates a contacts/context library using open-source models and leverages human intuition with AI.
+Speaker A  00:00:00
+Today I am building the next mission voice agent. This voice agent is designed to walk you through. Principles. Structured decision making principles. It is going to. It needs a way to get more contacts in the beginning of the conversation, and know what thread to pull on.
+
+Speaker A  00:00:32
+To ask you more about a certain thing so that you so that it's able to draw from the right context. It needs to be private so that the data preferably it needs to be private. Um, it needs to use an open source model as the brain, preferably the one that is the most in alignment with truth. However, I can figure that out and it needs to be private so that any conversation you have with it builds your own context.
+
+Speaker A  00:01:10
+Library. Or it adds to your context library. But perhaps this is a way to easily create and like create your first contact library. Um, so when you download it or when you. Yeah, when you like sign up, it basically builds your contacts library for you.
+
+Speaker A  00:01:42
+Um, your G brain contacts library using super bass, of course. And I want. I want it to be processed. Uh, I want the transcripts like I want. I want it to be as private as possible. Like not going through a frontier model. And then you own. You own the all of the data. And the idea is that.
+
+Speaker A  00:02:23
+The power of your own intuition. Is the power that you have. Hardly even tapped into it all.
+
+Speaker A  00:02:49
+And. How can AI. Absolutely take full advantage of. Of your intuition. How can we combine the power that humans have? By being connected to source with the power that AI has to hold. A million. Billion, um, parameters at once.
+
+Speaker A  00:03:20
+And, um, and figure out, you know.
+
+Speaker A  00:03:38
+Your intuition, the power of your intuition. Plus the the power of AI's brain.
+

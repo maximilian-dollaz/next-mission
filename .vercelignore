@@ -1,0 +1,8 @@
+.git
+.claude
+docs
+prompts
+scratch
+*.log
+.env
+.env.*
