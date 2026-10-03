@@ -45,11 +45,13 @@ export function vcard(number: string = AGENT_NUMBER): string {
  * Headers for the download.
  *
  * iOS Safari renders a contact card with an Add button; Android Chrome
- * downloads the file and the user opens it. `inline` exists because which
- * disposition iOS prefers has changed across versions — it is a flag to
- * test with on a real phone, not a second code path.
+ * downloads the file and the user opens it.
+ *
+ * DEFAULTS TO `inline`. Tested on a real iPhone: `attachment` sends the file
+ * to Files and the contact is never offered, which reads to the user as
+ * "Add to Contacts did nothing". `?inline=0` forces the old behaviour.
  */
-export function vcardHeaders(inline = false): Record<string, string> {
+export function vcardHeaders(inline = true): Record<string, string> {
   return {
     'Content-Type': 'text/vcard; charset=utf-8',
     'Content-Disposition': `${inline ? 'inline' : 'attachment'}; filename="${VCARD_FILENAME}"`,

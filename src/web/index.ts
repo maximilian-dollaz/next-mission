@@ -95,7 +95,7 @@ web.get('/', async (c, next) => {
 const serveVcard = (c: Context) => {
   // `?inline=1` swaps Content-Disposition. Which one iOS prefers has moved
   // across versions, so this is here to be tested on a real phone.
-  const inline = c.req.query('inline') === '1';
+  const inline = c.req.query('inline') !== '0';
   return new Response(vcard(), { headers: vcardHeaders(inline) });
 };
 
