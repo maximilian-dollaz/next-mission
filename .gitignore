@@ -12,3 +12,6 @@ supabase/.temp/
 scratch/
 .vercel
 .env*
+
+# handoff fallback store — local only
+.handoff/

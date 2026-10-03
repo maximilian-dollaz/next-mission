@@ -12,6 +12,7 @@ import { Hono, type Context } from 'hono';
 import { cors } from 'hono/cors';
 import { discovery } from 'mppx/hono';
 import { configReport, MissingConfigError } from './env.js';
+import { handleMcpRequest, mcpInfo } from './mcp/server.js';
 import {
   DEFAULT_SUBJECT,
   appendTurn,
@@ -449,5 +450,16 @@ app.get('/api/library/export', async (c) => {
   c.header('Content-Disposition', `attachment; filename="next-mission-library-${subjectId}.json"`);
   return c.json(library);
 });
+
+// ─────────────────────────────────────────────────────────────
+// The handoff over MCP — src/mcp/server.ts
+//
+// A caller's own agent connects here and pulls the work. One line, no setup:
+//   claude mcp add --transport http next-mission https://<host>/mcp
+// ─────────────────────────────────────────────────────────────
+
+app.all('/mcp', (c) => handleMcpRequest(c.req.raw));
+
+app.get('/mcp/info', (c) => c.json(mcpInfo(new URL(c.req.url).origin)));
 
 export default app;

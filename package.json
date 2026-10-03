@@ -22,7 +22,8 @@
     "db:smoke": "node --env-file-if-exists=.env --import tsx scripts/smoke.ts",
     "deploy": "vercel deploy --prod --yes",
     "deploy:env": "node --env-file-if-exists=.env --import tsx scripts/push-vercel-env.ts",
-    "tunnel": "cloudflared tunnel --url http://localhost:4242"
+    "tunnel": "cloudflared tunnel --url http://localhost:4242",
+    "handoff:demo": "node --env-file-if-exists=.env --import tsx src/handoff/cli.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.68.0",
