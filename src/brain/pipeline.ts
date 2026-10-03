@@ -15,7 +15,7 @@
  */
 
 import { optional } from '../env.js';
-import { fetchCallArtifacts, destroyCallArtifacts, type RawTurn } from './agentphone.js';
+import { fetchCallArtifacts, destroyCallArtifacts, type RawTurn } from './retell.js';
 import { extract } from './extract.js';
 import * as brain from './gbrain.js';
 import { briefSlug, renderBrief } from './page.js';

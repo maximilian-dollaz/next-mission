@@ -101,7 +101,7 @@ export interface StoreRecord {
   /** What this store would hold, in plain words. */
   holds: string;
   /** Who controls it. `us` means we can delete; `agentphone` means we cannot. */
-  controller: 'us' | 'agentphone' | 'model-provider';
+  controller: 'us' | 'agentphone' | 'retell' | 'model-provider';
   outcome: StoreOutcome;
   /** Null only when the outcome is `not_applicable`. */
   verification: Verification | null;
