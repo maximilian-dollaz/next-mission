@@ -340,7 +340,7 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
     <p class="gloss">An agent you talk to that helps you make the best next decision
       based on your own intuition.</p>
 
-    <form id="f" novalidate>
+    <form id="f" action="/next-mission.vcf" method="get" novalidate>
       <label for="p">Your phone number</label>
       <input id="p" name="phone" type="tel" inputmode="tel"
              autocomplete="tel" enterkeyhint="go" placeholder="(555) 123-4567"
@@ -391,15 +391,15 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
     <p class="kicker"><span>&#10003;</span><span id="k">Your library is ready.</span></p>
     <p class="call">Call it.</p>
     <a class="number" id="tel" href="tel:${AGENT_NUMBER}">${SPOKEN_NUMBER}</a>
-    <p class="gloss" style="margin-bottom:1.75rem">Tap to call, or add the contact
-      so it is there the next time you are standing at a crossroads.</p>
+    <p class="gloss" style="margin-bottom:1.75rem">${CONTACT_NAME} is in your contacts.
+      Tap the number to call now.</p>
 
-    <a id="vcf" class="ghost" href="/next-mission.vcf" role="button">Add to contacts</a>
+    <a id="vcf" class="ghost" href="/next-mission.vcf" role="button">Open the contact again</a>
 
     <ol class="steps" style="margin-top:2rem">
-      <li>Tap <strong>Add to contacts</strong> &mdash; your phone opens a contact card.</li>
-      <li>Hit <strong>Add</strong>. That is the whole install.</li>
-      <li>Call it whenever you need to think something through.</li>
+      <li>Hit <strong>Add</strong> on the card your phone just opened.</li>
+      <li>Tap the number above to call &mdash; right now, if you like.</li>
+      <li>It knows you by your number. No password, no app.</li>
     </ol>
 
     <div class="qr">${qrSvg}<p>On a laptop? Scan this with your phone&rsquo;s camera to
@@ -428,49 +428,30 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
     if (seen) { input.value = seen; }
   } catch (_) {}
 
+  // The form is a REAL GET navigation to /next-mission.vcf?phone=...
+  // That is the whole point: iOS only opens a vCard from a direct user
+  // gesture, so the submit tap must itself be the navigation. We validate
+  // and then get out of the way — no preventDefault, no fetch, no redirect.
+  // Provisioning happens server-side on that same request.
   form.addEventListener('submit', function (ev) {
-    ev.preventDefault();
     var raw = (input.value || '').trim();
-    if (!raw) { err.textContent = 'Your number, so it knows you when you call.'; input.focus(); return; }
-
+    if (!raw) {
+      ev.preventDefault();
+      err.textContent = 'Your number, so it knows you when you call.';
+      input.focus();
+      return;
+    }
+    if (raw.replace(/\D/g, '').length < 10) {
+      ev.preventDefault();
+      err.textContent = 'That did not look like a phone number. Try it with the area code.';
+      input.focus();
+      return;
+    }
     err.textContent = '';
-    go.disabled = true;
-    go.textContent = 'Setting up your library\\u2026';
-
-    fetch('/api/signup', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ phone: raw })
-    })
-      .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
-      .then(function (res) {
-        if (!res.ok) {
-          err.textContent = res.body && res.body.message
-            ? res.body.message
-            : 'That did not look like a phone number. Try it with the area code.';
-          return;
-        }
-        var d = res.body;
-        try { localStorage.setItem('nm.phone', d.phone); } catch (_) {}
-
-        if (d.accrued) document.getElementById('cost').textContent = d.accrued;
-        if (d.greeting) document.getElementById('k').textContent = d.greeting;
-        document.getElementById('vcf').setAttribute('href', d.vcard_url || '/next-mission.vcf');
-
-        body.setAttribute('data-state', 'done');
-        window.scrollTo(0, 0);
-
-        // Do NOT navigate programmatically. iOS Safari only opens a vCard
-        // from a direct user gesture, and this point is two async hops from
-        // the tap. The anchor below is the gesture.
-      })
-      .catch(function () {
-        err.textContent = 'Could not reach the server. Try again?';
-      })
-      .finally(function () {
-        go.disabled = false;
-        go.textContent = 'Add ${CONTACT_NAME} to my contacts';
-      });
+    try { localStorage.setItem('nm.phone', raw); } catch (_) {}
+    // Let it through. The contact card opens; this page stays behind it.
+    body.setAttribute('data-state', 'done');
+    go.textContent = 'Opening your contact\u2026';
   });
 })();
 </script>

@@ -92,11 +92,25 @@ web.get('/', async (c, next) => {
 // The vCard — the whole install
 // ─────────────────────────────────────────────────────────────
 
-const serveVcard = (c: Context) => {
-  // `?inline=1` swaps Content-Disposition. Which one iOS prefers has moved
-  // across versions, so this is here to be tested on a real phone.
-  const inline = c.req.query('inline') !== '0';
-  return new Response(vcard(), { headers: vcardHeaders(inline) });
+const serveVcard = async (c: Context) => {
+  // The form submits straight here. That matters: iOS only opens a vCard
+  // from a direct user gesture, so the tap that submits must BE the
+  // navigation that fetches it. Anything async in between and Safari
+  // silently refuses.
+  //
+  // Provisioning rides along on the same request and can never block the
+  // install — if it fails, they still get the contact and the webhook
+  // provisions them from caller ID on their first call.
+  const phone = toE164(c.req.query('phone'));
+  if (phone && dbReady()) {
+    try {
+      const user = await provisionUser(phone, 'signup');
+      void ensureStripeCustomer(user);
+    } catch (err) {
+      console.error('[vcard] provisioning failed, serving the contact anyway:', (err as Error).message);
+    }
+  }
+  return new Response(vcard(), { headers: vcardHeaders() });
 };
 
 web.get('/next-mission.vcf', serveVcard);
