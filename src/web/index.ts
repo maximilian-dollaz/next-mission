@@ -93,14 +93,6 @@ web.get('/', async (c, next) => {
 // ─────────────────────────────────────────────────────────────
 
 const serveVcard = async (c: Context) => {
-  // The form submits straight here. That matters: iOS only opens a vCard
-  // from a direct user gesture, so the tap that submits must BE the
-  // navigation that fetches it. Anything async in between and Safari
-  // silently refuses.
-  //
-  // Provisioning rides along on the same request and can never block the
-  // install — if it fails, they still get the contact and the webhook
-  // provisions them from caller ID on their first call.
   const phone = toE164(c.req.query('phone'));
   if (phone && dbReady()) {
     try {
@@ -110,8 +102,47 @@ const serveVcard = async (c: Context) => {
       console.error('[vcard] provisioning failed, serving the contact anyway:', (err as Error).message);
     }
   }
-  return new Response(vcard(), { headers: vcardHeaders() });
+
+  // iOS vCard handling varies by version and we cannot test it from here, so
+  // every variant is reachable by ?v= and /vcard-test lists them. Whichever
+  // one opens the Add-Contact sheet on a real phone becomes the default.
+  const v = c.req.query('v') ?? '';
+  const headers: Record<string, string> =
+    v === '2' ? { 'Content-Type': 'text/x-vcard' }
+    : v === '3' ? { 'Content-Type': 'text/vcard', 'Content-Disposition': `attachment; filename="${VCARD_FILENAME}"` }
+    : v === '4' ? { 'Content-Type': 'text/directory;profile=vCard' }
+    : v === '5' ? { 'Content-Type': 'application/octet-stream', 'Content-Disposition': `attachment; filename="${VCARD_FILENAME}"` }
+    : { 'Content-Type': 'text/vcard; charset=utf-8' };
+  headers['Cache-Control'] = 'no-store';
+  return new Response(vcard(), { headers });
 };
+
+// A bare page of every variant, so the one that works can be found in one pass.
+web.get('/vcard-test', (c) => {
+  const rows = [
+    ['1', 'text/vcard; charset=utf-8', 'no disposition  (current default)'],
+    ['2', 'text/x-vcard', 'legacy type, no disposition'],
+    ['3', 'text/vcard', 'attachment disposition'],
+    ['4', 'text/directory;profile=vCard', 'directory type'],
+    ['5', 'application/octet-stream', 'forced download'],
+  ];
+  return c.html(
+    `<!doctype html><meta name=viewport content="width=device-width,initial-scale=1">
+     <style>body{font:17px/1.5 -apple-system,sans-serif;padding:24px;max-width:34rem;margin:auto}
+     a{display:block;padding:18px;margin:12px 0;border:1px solid #ccc;border-radius:12px;
+       text-decoration:none;color:#111}
+     b{display:block;font-size:19px}small{color:#666}</style>
+     <h2>Tap each until one opens a contact card</h2>
+     <p>Then tell the orchestrator which number worked.</p>` +
+      rows
+        .map(
+          ([n, ct, note]) =>
+            `<a href="/next-mission.vcf?v=${n}"><b>Variant ${n}</b><small>${ct} &middot; ${note}</small></a>`
+        )
+        .join('') +
+      `<a href="tel:${AGENT_NUMBER}"><b>Or just call it now</b><small>${AGENT_NUMBER}</small></a>`
+  );
+});
 
 web.get('/next-mission.vcf', serveVcard);
 // A couple of spellings, because the filename gets typed and shared.
