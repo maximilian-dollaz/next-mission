@@ -18,7 +18,7 @@ import { optionalRaw } from '../env.js';
 import { accruedLine, formatSeconds, reportCallSeconds, billingReady } from '../billing/index.js';
 import { landingPage } from './page.js';
 import { formatForHumans, toE164 } from './phone.js';
-import { AGENT_NUMBER, vcard, vcardHeaders, VCARD_FILENAME } from './vcard.js';
+import { AGENT_NUMBER, vcard, vcardMinimal, vcardHeaders, VCARD_FILENAME } from './vcard.js';
 import {
   closeDelivery,
   dbReady,
@@ -121,7 +121,8 @@ const serveVcard = async (c: Context) => {
         'Content-Disposition': `inline; filename="${VCARD_FILENAME}"`,
       };
   headers['Cache-Control'] = 'no-store';
-  return new Response(vcard(), { headers });
+  const bare = c.req.query('min') === '1';
+  return new Response(bare ? vcardMinimal() : vcard(), { headers });
 };
 
 // A bare page of every variant, so the one that works can be found in one pass.

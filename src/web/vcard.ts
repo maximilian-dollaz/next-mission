@@ -31,10 +31,10 @@ export function vcard(number: string = AGENT_NUMBER): string {
       'BEGIN:VCARD',
       'VERSION:3.0',
       // N is Family;Given;Middle;Prefix;Suffix — a single name goes first.
-      `N:${CONTACT_NAME};;;;`,
+      `N:;${CONTACT_NAME};;;`,
       `FN:${CONTACT_NAME}`,
       `ORG:${CONTACT_ORG}`,
-      `TEL;TYPE=CELL,VOICE:${number}`,
+      `TEL;TYPE=CELL:${number}`,
       `NOTE:${esc('It is in your moments of decision that your destiny is shaped.')}`,
       'END:VCARD',
     ].join(CRLF) + CRLF
@@ -64,3 +64,17 @@ export function vcardHeaders(_inline = true): Record<string, string> {
   };
 }
 
+
+/** Name and number only — the smallest card iOS can refuse to save. */
+export function vcardMinimal(number: string = AGENT_NUMBER): string {
+  return (
+    [
+      'BEGIN:VCARD',
+      'VERSION:3.0',
+      `N:;${CONTACT_NAME};;;`,
+      `FN:${CONTACT_NAME}`,
+      `TEL;TYPE=CELL:${number}`,
+      'END:VCARD',
+    ].join(CRLF) + CRLF
+  );
+}
