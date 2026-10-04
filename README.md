@@ -1,5 +1,11 @@
 # Next Mission
 
+> ## 🎥 SUBMISSION VIDEO
+> ### ▶ **[Watch the Supabase Select 2026 submission video](https://github.com/maximilian-dollaz/next-mission/releases/download/v1.0/Supabase.select.video.submission.MOV)**
+> *2 minutes 34 seconds. Also on the [release page](https://github.com/maximilian-dollaz/next-mission/releases/tag/v1.0).*
+
+---
+
 **A specialist decision-making agent. You call it, it walks you to a decision you
 actually believe, and then it hands your own agent an executable brief.**
 
