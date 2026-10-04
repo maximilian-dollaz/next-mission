@@ -112,7 +112,14 @@ const serveVcard = async (c: Context) => {
     : v === '3' ? { 'Content-Type': 'text/vcard', 'Content-Disposition': `attachment; filename="${VCARD_FILENAME}"` }
     : v === '4' ? { 'Content-Type': 'text/directory;profile=vCard' }
     : v === '5' ? { 'Content-Type': 'application/octet-stream', 'Content-Disposition': `attachment; filename="${VCARD_FILENAME}"` }
-    : { 'Content-Type': 'text/vcard; charset=utf-8' };
+    : {
+        // THE WORKING CONFIG. Confirmed on Max's iPhone: inline WITH a
+        // filename is what opens the Add-Contact sheet. `attachment` sends
+        // it to Files; omitting the header entirely also fails. Do not
+        // remove this header again.
+        'Content-Type': 'text/vcard; charset=utf-8',
+        'Content-Disposition': `inline; filename="${VCARD_FILENAME}"`,
+      };
   headers['Cache-Control'] = 'no-store';
   return new Response(vcard(), { headers });
 };
