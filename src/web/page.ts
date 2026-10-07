@@ -336,8 +336,8 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
 
   <section class="start">
     <h1 class="headline">You already know the answer.
-      Discovered with the help of <b>${CONTACT_NAME}</b>.</h1>
-    <p class="gloss">An agent you talk to that helps you make the best next decision
+      Discover it with the help of <b>${CONTACT_NAME}</b>.</h1>
+    <p class="gloss">A voice agent that helps you make the next best decision
       based on your own intuition.</p>
 
     <form id="f" action="/next-mission.vcf" method="get" novalidate>
