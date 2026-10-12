@@ -84,7 +84,8 @@ web.get('/', async (c, next) => {
   if (!wantsHtml(c)) return next();
 
   const base = origin(c);
-  const html = landingPage({ qrSvg: await qrSvg(`${base}/next-mission.vcf`), origin: base });
+  // tel:, not the vCard: a laptop visitor scans it and their iPhone offers to call.
+  const html = landingPage({ qrSvg: await qrSvg(`tel:${AGENT_NUMBER}`), origin: base });
   return c.html(html);
 });
 

@@ -1,458 +1,236 @@
 /**
- * The front door, as one page.
+ * The front door, built for one moment: someone walks past the red phone,
+ * scans a QR code, and is looking at this on their iPhone thirty seconds later
+ * — without having heard the pitch.
  *
- * One field, one button, a lot of space. The whole flow is: type your
- * number, tap once, Habibi is in your contacts, call it, it already
- * knows you. Everything on this page serves that sentence — anything that
- * does not is not on it.
+ * So the page answers their questions in the order they come up, and nothing
+ * else above the fold:
  *
- * No build step and no framework: one string of HTML with its CSS and ~80
- * lines of script inline, served by the same Hono app as the API. A judge
- * on a laptop and a user on a phone get the same page.
+ *   what is this?   → the line under the name
+ *   what would I bring to it?   → the question in the middle
+ *   what do I do?   → three steps
+ *   go              → one green button, the one their thumb already knows
  *
- * Visual system — "Observatory", chosen 2026-10-03 from three candidates:
- * a saturated blue-black ground with a cool interstellar white, Playfair
- * Display 700 for the quote, DM Sans for everything read, DM Mono for the
- * step numerals. Ember (#C4723A) is the single accent and, with no logo and
- * no eyebrow on this page, the only thing tying it to Upside — so it is
- * spent only on the numerals and the one button that matters. Committed
- * dark: this is not a dual-theme design, so every colour is painted
- * explicitly and nothing is inherited from the viewer's preference.
+ * It is laid out like a locked iPhone receiving a call: black, the name in
+ * white, and "slide to call" at the bottom. No decline — there is nothing to
+ * refuse. Everything that explains *why* lives below the fold, for after.
+ *
+ * The slider is progressive enhancement over a plain tel: link. iOS only dials
+ * from a real user gesture, so a completed slide navigates synchronously inside
+ * touchend/mouseup — never after a timeout or a fetch. And the knob IS the
+ * tel: link, so a plain tap still dials if the slide ever fails.
  */
 
-import { AGENT_NUMBER, CONTACT_NAME, VCARD_FILENAME } from './vcard.js';
+import { AGENT_NUMBER, CONTACT_NAME } from './vcard.js';
 import { formatForHumans } from './phone.js';
 
 export interface PageOptions {
-  /** QR of the vCard URL, as inline SVG. Empty string hides the panel. */
+  /** An inline SVG QR code. Encodes tel:, so a laptop visitor can scan to call. */
   qrSvg: string;
-  /** Absolute origin, for the "or scan this" caption. */
+  /** The public origin, e.g. https://nextmissionsi.com. */
   origin: string;
 }
 
-const SPOKEN_NUMBER = formatForHumans(AGENT_NUMBER);
-
 export function landingPage({ qrSvg, origin }: PageOptions): string {
-  const host = origin.replace(/^https?:\/\//, '');
+  const number = formatForHumans(AGENT_NUMBER);
+  const tel = `tel:${AGENT_NUMBER}`;
 
   return `<!doctype html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>${CONTACT_NAME}</title>
-<meta name="description" content="A voice agent you call when you are standing at a crossroads. You already know the answer — this helps you discover it, then hands the next step to your own agent.">
-<meta name="theme-color" content="#070910">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='26' font-size='26'>&#9742;</text></svg>">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500&family=Playfair+Display:wght@600;700&display=swap">
+<meta name="description" content="An AI voice agent that helps you make a decision. Call it, explain the situation, be honest.">
+<meta property="og:title" content="${CONTACT_NAME}">
+<meta property="og:description" content="An AI voice agent that helps you make a decision.">
+<meta property="og:url" content="${origin}">
 <style>
-  :root {
-    /* Observatory — the black has sky in it. */
-    --ground: #070910;
-    --light: #F4F6FB;
-    --dim: #A8AEC2;
-    --faint: #6B7288;
-    --hair: rgba(244,246,251,.09);
-    --hair-strong: rgba(244,246,251,.17);
-    --well: rgba(244,246,251,.035);
-    --placeholder: #5E657A;
-    --ember: #C4723A;
-    --ember-lift: #D4824A;
-    --ember-ink: #FBF7F2;
-    --ok: #7FD4A8;
-    --bad: #E8927C;
+  :root{
+    --bg:#000; --fg:#fff; --dim:rgba(255,255,255,.62); --faint:rgba(255,255,255,.38);
+    --card:#1C1C1E; --line:#2C2C2E; --green:#34C759;
+    --sys:-apple-system,BlinkMacSystemFont,"SF Pro Display","SF Pro Text","Helvetica Neue",Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html{background:var(--bg)}
+  body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--sys);
+       -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
+  a{color:inherit}
 
-    --display: 'Playfair Display', Georgia, 'Times New Roman', serif;
-    --body: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, system-ui, sans-serif;
-    --mono: 'DM Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-  }
-  * { box-sizing: border-box; }
-  html { background: var(--ground); }
-  html, body { margin: 0; }
-  body {
-    background: var(--ground);
-    color: var(--dim);
-    font: 400 17px/1.5 var(--body);
-    -webkit-font-smoothing: antialiased;
-    -webkit-text-size-adjust: 100%;
-    min-height: 100svh;
-    display: flex;
-    flex-direction: column;
-    text-align: center;
-    padding: max(56px, env(safe-area-inset-top)) 26px max(34px, env(safe-area-inset-bottom));
-    position: relative;
-    overflow-x: hidden;
-  }
-  /* the distant star behind the quote — present in the room, not incense */
-  body::before {
-    content: '';
-    position: absolute;
-    inset: 0 0 auto;
-    height: 72vh;
-    background: radial-gradient(60% 42% at 50% 14%, rgba(126,150,214,.16) 0%, rgba(126,150,214,0) 72%);
-    pointer-events: none;
-    z-index: 0;
-  }
-  main { position: relative; z-index: 1; width: 100%; max-width: 25rem; margin: auto; }
-
-  .headline {
-    font-family: var(--display);
-    font-weight: 700;
-    font-size: clamp(1.9rem, 7.8vw, 2.45rem);
-    line-height: 1.2;
-    letter-spacing: -.018em;
-    color: var(--light);
-    margin: 0 0 18px;
-    text-wrap: balance;
-  }
-  .headline b { color: var(--ember); font-weight: inherit; }
-  .gloss {
-    margin: 0 auto 36px;
-    max-width: 21rem;
-    font-size: 15px;
-    line-height: 1.55;
-    color: var(--faint);
-    text-wrap: balance;
+  /* ── the call screen: exactly one viewport tall ── */
+  .call-screen{
+    min-height:100vh; min-height:100svh;
+    max-width:440px; margin:0 auto;
+    display:flex; flex-direction:column;
+    padding:calc(env(safe-area-inset-top) + 9vh) 24px calc(env(safe-area-inset-bottom) + 28px);
   }
 
-  /* ── what it is ── not a sequence, so no numerals: a dash and a name ── */
-  .features {
-    margin: 44px 0 0;
-    padding: 0;
-    list-style: none;
-    text-align: left;
-    border-top: 1px solid var(--hair);
-  }
-  .features li {
-    padding: 16px 2px 17px;
-    border-bottom: 1px solid var(--hair);
-  }
-  .features b {
-    display: block;
-    font-size: 15px;
-    font-weight: 500;
-    color: var(--light);
-    margin-bottom: 3px;
-  }
-  .features b::before {
-    content: '—';
-    color: var(--ember);
-    margin-right: .5em;
-  }
-  .features span {
-    display: block;
-    font-size: 14px;
-    line-height: 1.5;
-    color: var(--faint);
+  .caller{text-align:center}
+  .caller h1{margin:0;font-size:40px;font-weight:400;letter-spacing:-.6px;line-height:1.1}
+  .caller p{margin:10px auto 0;max-width:20em;font-size:17px;line-height:1.35;color:var(--dim)}
+
+  /* the "screenshot on the lock screen": centered in the remaining space */
+  .middle{flex:1;display:flex;align-items:center;justify-content:center;padding:28px 0}
+  .shot{width:100%;background:var(--card);border-radius:22px;padding:24px 22px 8px;
+        box-shadow:0 0 0 .5px rgba(255,255,255,.08)}
+  .shot .q{margin:0 0 18px;font-size:23px;font-weight:600;line-height:1.25;letter-spacing:-.3px;text-wrap:balance}
+  .steps{list-style:none;margin:0;padding:0}
+  .steps li{display:flex;align-items:center;gap:14px;padding:14px 0;border-top:.5px solid var(--line);font-size:18px}
+  .steps .n{flex:none;width:28px;height:28px;border-radius:50%;background:#2C2C2E;color:var(--dim);
+            display:grid;place-items:center;font-size:14px;font-weight:600}
+
+  /* slide to call */
+  .slide{position:relative;height:76px;border-radius:38px;background:rgba(255,255,255,.16);
+         -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);touch-action:pan-y;
+         -webkit-user-select:none;user-select:none}
+  .slide .txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+              padding-left:60px;font-size:21px;letter-spacing:-.2px;pointer-events:none;
+              background:linear-gradient(90deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,.42) 38%,#fff 50%,rgba(255,255,255,.42) 62%,rgba(255,255,255,.42) 100%);
+              background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+              animation:shine 2.6s linear infinite;transition:opacity .15s}
+  @keyframes shine{0%{background-position:100% 0}100%{background-position:-50% 0}}
+  .knob{position:absolute;top:5px;left:5px;width:66px;height:66px;border-radius:50%;background:var(--green);
+        display:grid;place-items:center;text-decoration:none;touch-action:none;cursor:grab;
+        box-shadow:0 2px 10px rgba(0,0,0,.35);will-change:transform}
+  .knob.snap{transition:transform .28s cubic-bezier(.2,.9,.3,1)}
+  .knob svg{width:30px;height:30px;fill:#fff;pointer-events:none}
+  .knob:focus-visible{outline:3px solid #fff;outline-offset:4px}
+  .number{display:block;text-align:center;margin-top:14px;font-size:15px;color:var(--faint);text-decoration:none}
+
+  .more-hint{display:block;text-align:center;margin-top:22px;font-size:13px;color:var(--faint);text-decoration:none}
+
+  /* ── below the fold: for after they've tried it ── */
+  .more{max-width:440px;margin:0 auto;padding:40px 16px calc(env(safe-area-inset-bottom) + 56px)}
+  .more h2{font-size:28px;font-weight:700;letter-spacing:-.3px;margin:0 8px 18px}
+  .sec{margin:0 0 16px}
+  .sec .h{font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:#8E8E93;padding:0 16px 7px}
+  .sec .b{background:var(--card);border-radius:14px;padding:14px 16px;font-size:17px;line-height:1.4}
+  .sec .b em{font-style:normal;color:var(--fg);font-weight:600}
+  .save{display:flex;align-items:center;justify-content:center;gap:9px;margin:26px 0 0;height:54px;
+        border-radius:14px;background:var(--card);text-decoration:none;font-size:17px;color:var(--green);font-weight:600}
+  .save svg{width:20px;height:20px;fill:var(--green)}
+  .foot{text-align:center;color:var(--faint);font-size:13px;margin-top:30px}
+
+  /* laptops: you can't dial from here, so hand them a QR that dials from their phone */
+  .desk{display:none}
+  @media (hover:hover) and (pointer:fine) and (min-width:760px){
+    .desk{display:flex;align-items:center;gap:16px;margin-top:18px;padding:14px;border-radius:16px;background:var(--card)}
+    .desk .qr{flex:none;width:96px;height:96px;background:#fff;border-radius:10px;padding:6px}
+    .desk .qr svg{width:100%;height:100%;display:block}
+    .desk p{margin:0;font-size:14px;line-height:1.4;color:var(--dim)}
   }
 
-  .section-mark {
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: .15em;
-    text-transform: uppercase;
-    color: var(--faint);
-    text-align: left;
-    margin: 44px 0 0;
-  }
-  .section-mark + .steps,
-  .section-mark + .features { margin-top: 16px; }
-
-  /* how to use it — a real sequence, so the numerals earn their place */
-  .steps {
-    margin: 0 0 40px;
-    padding: 0;
-    list-style: none;
-    text-align: left;
-    counter-reset: s;
-    border-top: 1px solid var(--hair);
-  }
-  .steps li {
-    counter-increment: s;
-    display: flex;
-    gap: 14px;
-    align-items: baseline;
-    padding: 15px 2px;
-    border-bottom: 1px solid var(--hair);
-    font-size: 15px;
-    line-height: 1.5;
-    color: var(--dim);
-  }
-  .steps li::before {
-    content: counter(s);
-    flex: none;
-    width: 1.2em;
-    font-family: var(--mono);
-    font-size: 12px;
-    color: var(--ember);
-    font-variant-numeric: tabular-nums;
-  }
-
-  form { text-align: left; }
-  label {
-    display: block;
-    font-family: var(--mono);
-    font-size: 11px;
-    letter-spacing: .14em;
-    text-transform: uppercase;
-    color: var(--faint);
-    margin-bottom: .6rem;
-  }
-  input {
-    width: 100%;
-    padding: 1rem 1.0625rem;
-    font-family: var(--body);
-    /* 17px — never below 16, or Safari zooms the page on focus */
-    font-size: 17px;
-    letter-spacing: .01em;
-    color: var(--light);
-    background: var(--well);
-    border: 1px solid var(--hair-strong);
-    border-radius: 12px;
-    -webkit-appearance: none;
-  }
-  input::placeholder { color: var(--placeholder); }
-  input:focus {
-    outline: 2px solid var(--ember);
-    outline-offset: 1px;
-    border-color: transparent;
-    background: rgba(244,246,251,.06);
-  }
-  button {
-    width: 100%;
-    margin-top: .625rem;
-    padding: 1rem 1.0625rem;
-    font-family: var(--body);
-    font-size: 16px;
-    font-weight: 500;
-    color: var(--ember-ink);
-    background: var(--ember);
-    border: 0;
-    border-radius: 12px;
-    cursor: pointer;
-    -webkit-appearance: none;
-    transition: background-color .15s ease;
-  }
-  button:hover { background: var(--ember-lift); }
-  button:focus-visible { outline: 2px solid var(--light); outline-offset: 2px; }
-  button:disabled { opacity: .55; cursor: default; }
-  button.ghost, a.ghost {
-    color: var(--light);
-    background: transparent;
-    border: 1px solid var(--hair-strong);
-  }
-  button.ghost:hover, a.ghost:hover { background: var(--well); }
-  /* The anchor IS the button. iOS will not open a vCard from a nested
-     <button>, nor from a programmatic navigation — only a direct tap on a
-     real link, with no download attribute. Do not "improve" this. */
-  a.ghost {
-    display: block; width: 100%; box-sizing: border-box;
-    margin-top: .625rem;
-    text-align: center; text-decoration: none; cursor: pointer;
-    font-family: var(--body); font-size: 16px; font-weight: 500;
-    padding: 1rem 1.0625rem; border-radius: 12px; -webkit-appearance: none;
-  }
-  a.ghost:focus-visible { outline: 2px solid var(--light); outline-offset: 2px; }
-
-  .fine { margin: 18px 0 0; font-size: 13px; line-height: 1.5; color: var(--faint); }
-  .err {
-    margin: .85rem 0 0;
-    font-size: 14px;
-    color: var(--bad);
-    min-height: 1.4em;
-    text-align: left;
-  }
-
-  /* ── the done panel ── */
-  .done { display: none; }
-  body[data-state="done"] .start { display: none; }
-  body[data-state="done"] .done { display: block; }
-  .kicker {
-    font-family: var(--mono);
-    font-size: 12px;
-    letter-spacing: .1em;
-    text-transform: uppercase;
-    color: var(--ok);
-    margin: 0 0 1.6rem;
-    display: flex;
-    gap: .5rem;
-    align-items: baseline;
-    justify-content: center;
-  }
-  .call {
-    font-family: var(--display);
-    font-weight: 700;
-    font-size: clamp(1.9rem, 8vw, 2.4rem);
-    line-height: 1.15;
-    letter-spacing: -.015em;
-    color: var(--light);
-    margin: 0 0 1rem;
-  }
-  .number {
-    display: block;
-    font-size: clamp(2rem, 9vw, 2.75rem);
-    font-weight: 500;
-    letter-spacing: -.02em;
-    color: var(--ember);
-    text-decoration: none;
-    margin: 0 0 1rem;
-    font-variant-numeric: tabular-nums;
-  }
-  .number:active { opacity: .6; }
-  .qr {
-    margin-top: 2rem;
-    padding-top: 1.6rem;
-    border-top: 1px solid var(--hair);
-    display: flex;
-    gap: 1.1rem;
-    align-items: center;
-    text-align: left;
-  }
-  .qr svg {
-    width: 104px; height: 104px; flex: none;
-    border-radius: 8px; background: #fff; padding: 6px;
-  }
-  .qr p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--faint); }
-  @media (max-width: 400px) { .qr { display: none; } }
-
-  footer {
-    position: relative; z-index: 1;
-    margin: 3rem auto 0; max-width: 25rem; width: 100%;
-    font-family: var(--mono);
-    font-size: 11px; letter-spacing: .06em;
-    color: var(--faint);
-  }
-  footer a { color: inherit; }
-
-  @media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; animation: none !important; }
-  }
+  @media (prefers-reduced-motion:reduce){.slide .txt{animation:none;color:#fff;background:none}}
 </style>
 </head>
-<body data-state="start">
-<main>
+<body>
 
-  <section class="start">
-    <h1 class="headline">You already know the answer.
-      Discover it with the help of <b>${CONTACT_NAME}</b>.</h1>
-    <p class="gloss">A voice agent that helps you make the next best decision
-      based on your own intuition.</p>
+<main class="call-screen">
+  <header class="caller">
+    <h1>${CONTACT_NAME}</h1>
+    <p>An AI voice agent that helps you make a decision.</p>
+  </header>
 
-    <form id="f" action="/next-mission.vcf" method="get" novalidate>
-      <label for="p">Your phone number</label>
-      <input id="p" name="phone" type="tel" inputmode="tel"
-             autocomplete="tel" enterkeyhint="go" placeholder="(555) 123-4567"
-             aria-describedby="e">
-      <button id="go" type="submit">Add ${CONTACT_NAME} to my contacts</button>
-      <p class="err" id="e" role="alert"></p>
-    </form>
-
-    <p class="section-mark">What it is</p>
-    <ul class="features">
-      <li>
-        <b>Your conversation is not stored</b>
-        <span>No recording, no transcript kept. Your number is the only thing on
-          file, and only so ${CONTACT_NAME} knows you when you call.</span>
-      </li>
-      <li>
-        <b>It builds a context library you own</b>
-        <span>What you decide is saved to a private library that belongs to you,
-          so the next call starts where the last one ended.</span>
-      </li>
-      <li>
-        <b>It dispatches the task to your assistant</b>
-        <span>${CONTACT_NAME} never acts for you. It writes the brief and hands the
-          next step to your own personal agent to execute.</span>
-      </li>
-      <li>
-        <b>You pay for talk time, by the minute</b>
-        <span>Billed only for the minutes you are actually on the call. Adding the
-          contact is free.</span>
-      </li>
-      <li>
-        <b>No subscription</b>
-        <span>Pay as you go, or settle on usage. Nothing recurring, nothing to cancel.</span>
-      </li>
-    </ul>
-
-    <p class="section-mark">How to use it</p>
-    <ol class="steps">
-      <li>When you&rsquo;re standing at a crossroads, call ${CONTACT_NAME}.</li>
-      <li>Give as much context about the situation as you can.</li>
-      <li>Be ruthlessly honest, and steer the conversation if you need to.</li>
-      <li>At the end, approve a task for your personal assistant agent.</li>
-      <li>Take action.</li>
-    </ol>
+  <section class="middle" aria-label="How to use it">
+    <div class="shot">
+      <p class="q">What have you been going back and forth on?</p>
+      <ol class="steps">
+        <li><span class="n">1</span>Call ${CONTACT_NAME}.</li>
+        <li><span class="n">2</span>Explain the situation.</li>
+        <li><span class="n">3</span>Be honest.</li>
+      </ol>
+      <div class="desk">
+        <div class="qr" aria-hidden="true">${qrSvg}</div>
+        <p>On a computer? Scan this with your iPhone camera and it will offer to call ${CONTACT_NAME}.</p>
+      </div>
+    </div>
   </section>
 
-  <section class="done" aria-live="polite">
-    <p class="kicker"><span>&#10003;</span><span id="k">Your library is ready.</span></p>
-    <p class="call">Call it.</p>
-    <a class="number" id="tel" href="tel:${AGENT_NUMBER}">${SPOKEN_NUMBER}</a>
-    <p class="gloss" style="margin-bottom:1.75rem">${CONTACT_NAME} is in your contacts.
-      Tap the number to call now.</p>
-
-    <a id="vcf" class="ghost" href="/next-mission.vcf" role="button">Open the contact again</a>
-
-    <ol class="steps" style="margin-top:2rem">
-      <li>Hit <strong>Add</strong> on the card your phone just opened.</li>
-      <li>Tap the number above to call &mdash; right now, if you like.</li>
-      <li>It knows you by your number. No password, no app.</li>
-    </ol>
-
-    <div class="qr">${qrSvg}<p>On a laptop? Scan this with your phone&rsquo;s camera to
-      get the contact onto the phone you actually call from.</p></div>
-
-    <p class="fine" id="cost">Free to add. You pay only for talk time.</p>
-  </section>
+  <div class="slide" id="slide">
+    <span class="txt">slide to call</span>
+    <a class="knob" id="knob" href="${tel}" aria-label="Call ${CONTACT_NAME} at ${number}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></a>
+  </div>
+  <a class="number" href="${tel}">${number}</a>
+  <a class="more-hint" href="#more">How is this different?</a>
 </main>
 
-<footer>
-  <span id="host">${host}</span> &middot;
-  <a href="/llms.txt">what we keep, and what it costs</a>
-</footer>
+<section class="more" id="more">
+  <h2>After you call</h2>
+
+  <div class="sec"><div class="h">How is this different from ChatGPT?</div>
+    <div class="b">ChatGPT answers you. <em>${CONTACT_NAME} asks you.</em> It won&#8217;t give you advice &#8212; it asks questions until the answer you already have becomes obvious.</div></div>
+
+  <div class="sec"><div class="h">What should I bring to it?</div>
+    <div class="b">Anything you&#8217;ve been going back and forth on. It can be small &#8212; you don&#8217;t have to start with the big one. It has a way of finding what&#8217;s underneath.</div></div>
+
+  <div class="sec"><div class="h">Do I have to know what to say?</div>
+    <div class="b">No. It starts by asking you a question. Give it as much of the situation as you can &#8212; <em>your only job is to be honest.</em></div></div>
+
+  <div class="sec"><div class="h">What do I walk away with?</div>
+    <div class="b">A decision in your own words, and the next step. If you use an AI assistant, ${CONTACT_NAME} can hand that step to it.</div></div>
+
+  <div class="sec"><div class="h">Who hears this?</div>
+    <div class="b">Only you. Your call is saved to a private library that belongs to you, and deleted from the voice provider.</div></div>
+
+  <a class="save" href="/next-mission.vcf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg>Save ${CONTACT_NAME} to contacts</a>
+
+  <p class="foot">${number}</p>
+</section>
 
 <script>
 (function () {
-  var form = document.getElementById('f');
-  var input = document.getElementById('p');
-  var go = document.getElementById('go');
-  var err = document.getElementById('e');
-  var body = document.body;
+  var track = document.getElementById('slide');
+  var knob = document.getElementById('knob');
+  var txt = track.querySelector('.txt');
+  var TEL = knob.getAttribute('href');
+  var startX = 0, x = 0, max = 0, dragging = false, moved = false;
 
-  // If they have signed up on this phone before, skip straight to the end.
-  try {
-    var seen = localStorage.getItem('nm.phone');
-    if (seen) { input.value = seen; }
-  } catch (_) {}
+  function maxX() { return track.clientWidth - knob.offsetWidth - 10; }
+  function set(v) {
+    x = Math.max(0, Math.min(v, max));
+    knob.style.transform = 'translateX(' + x + 'px)';
+    txt.style.opacity = String(1 - Math.min(1, x / (max * 0.6)));
+  }
+  function begin(clientX) {
+    max = maxX(); startX = clientX - x; dragging = true; moved = false;
+    knob.classList.remove('snap');
+  }
+  function move(clientX) {
+    if (!dragging) return;
+    var v = clientX - startX;
+    if (Math.abs(v) > 6) moved = true;
+    set(v);
+  }
+  // Must run synchronously inside the touchend / mouseup handler:
+  // iOS only dials tel: from a live user gesture.
+  function end() {
+    if (!dragging) return;
+    dragging = false;
+    knob.classList.add('snap');
+    if (moved && x >= max * 0.72) {
+      set(max);
+      window.location.href = TEL;
+      setTimeout(function () { set(0); }, 1200);
+    } else {
+      set(0);
+    }
+  }
 
-  // The form is a REAL GET navigation to /next-mission.vcf?phone=...
-  // That is the whole point: iOS only opens a vCard from a direct user
-  // gesture, so the submit tap must itself be the navigation. We validate
-  // and then get out of the way — no preventDefault, no fetch, no redirect.
-  // Provisioning happens server-side on that same request.
-  form.addEventListener('submit', function (ev) {
-    var raw = (input.value || '').trim();
-    if (!raw) {
-      ev.preventDefault();
-      err.textContent = 'Your number, so it knows you when you call.';
-      input.focus();
-      return;
-    }
-    if (raw.replace(/\D/g, '').length < 10) {
-      ev.preventDefault();
-      err.textContent = 'That did not look like a phone number. Try it with the area code.';
-      input.focus();
-      return;
-    }
-    err.textContent = '';
-    try { localStorage.setItem('nm.phone', raw); } catch (_) {}
-    // Let it through. The contact card opens; this page stays behind it.
-    body.setAttribute('data-state', 'done');
-    go.textContent = 'Opening your contact\u2026';
-  });
+  knob.addEventListener('touchstart', function (e) { begin(e.touches[0].clientX); }, { passive: true });
+  knob.addEventListener('touchmove', function (e) { if (dragging) { e.preventDefault(); move(e.touches[0].clientX); } }, { passive: false });
+  knob.addEventListener('touchend', end);
+  knob.addEventListener('touchcancel', function () { dragging = false; knob.classList.add('snap'); set(0); });
+
+  knob.addEventListener('mousedown', function (e) { e.preventDefault(); begin(e.clientX); });
+  window.addEventListener('mousemove', function (e) { move(e.clientX); });
+  window.addEventListener('mouseup', end);
+
+  // A drag must not also fire the link; a plain tap still dials.
+  knob.addEventListener('click', function (e) { if (moved) { e.preventDefault(); moved = false; } });
+  window.addEventListener('resize', function () { max = maxX(); if (x) set(0); });
 })();
 </script>
 </body>
