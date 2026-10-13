@@ -62,14 +62,16 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
      The text block sits at the optical center (a little above the middle),
      where the eye lands first on a phone; the button sits in the thumb zone. */
   .call-screen{
+    position:relative;
     min-height:100vh; min-height:100svh;
     max-width:440px; margin:0 auto;
     display:flex; flex-direction:column;
-    padding:calc(env(safe-area-inset-top) + 16px) 24px calc(env(safe-area-inset-bottom) + 24px);
+    padding:calc(env(safe-area-inset-top) + 16px) 24px calc(env(safe-area-inset-bottom) + 64px);
   }
-  /* the whole group sits a little above the middle, where the eye lands */
+  /* Balanced: equal space above and below the group, measured between the top
+     of the screen and the arrow. Inside the group, the two gaps are equal too. */
   .above{flex:1 1 0}
-  .below{flex:1.4 1 0}
+  .below{flex:1 1 0}
 
   .content{text-align:center}
   /* Two lines, always. The longer line is 11.5em wide, so the size is derived
@@ -86,7 +88,7 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   .steps .n{display:inline-block; min-width:1.6em; color:#fff; font-weight:600; font-variant-numeric:tabular-nums}
 
   /* the one button: a green pill across the bottom */
-  .bar{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:62px;margin-top:44px;
+  .bar{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:62px;margin-top:34px;
        border-radius:31px;background:var(--green);color:#fff;text-decoration:none;
        font-size:19px;font-weight:600;letter-spacing:-.2px;-webkit-tap-highlight-color:transparent;
        transition:transform .1s, filter .1s}
@@ -94,7 +96,13 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   .bar:active{transform:scale(.98);filter:brightness(.92)}
   .bar:focus-visible{outline:3px solid #fff;outline-offset:4px}
 
-  .more-hint{display:block;text-align:center;margin-top:22px;font-size:13px;color:var(--faint);text-decoration:none}
+  /* a faint V just above Safari's address bar: there's more below */
+  html{scroll-behavior:smooth}
+  .down{position:absolute;left:50%;bottom:calc(env(safe-area-inset-bottom) + 8px);transform:translateX(-50%);
+        width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+        -webkit-tap-highlight-color:transparent;animation:blink 2.4s ease-in-out infinite}
+  .down svg{width:24px;height:12px;fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+  @keyframes blink{0%,100%{opacity:.14}50%{opacity:.45}}
 
   /* ── below the fold: for after they've tried it ── */
   .more{max-width:440px;margin:40vh auto 0;padding:40px 16px calc(env(safe-area-inset-bottom) + 56px)}
@@ -117,7 +125,7 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
     .desk p{margin:0;font-size:14px;line-height:1.4;color:var(--dim)}
   }
 
-  @media (prefers-reduced-motion:reduce){.bar{transition:none}}
+  @media (prefers-reduced-motion:reduce){.bar{transition:none}.down{animation:none;opacity:.3}html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
@@ -143,6 +151,8 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   </section>
 
   <div class="below"></div>
+
+  <a class="down" href="#more" aria-label="More about this"><svg viewBox="0 0 24 12" aria-hidden="true"><polyline points="2,2 12,10 22,2"/></svg></a>
 </main>
 
 <section class="more" id="more">
