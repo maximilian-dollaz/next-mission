@@ -128,18 +128,25 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   @keyframes blink{0%,100%{opacity:.14}50%{opacity:.45}}
 
   /* ── below the fold: for after they've tried it ── */
-  .more{max-width:440px;margin:0 auto;padding:28px 24px calc(env(safe-area-inset-bottom) + 56px)}
+  /* Below the fold. Nothing may show near Safari's address bar on the first
+     screen: the address bar floats over the page on recent iOS, so the
+     explanation starts below the screen's *largest* height (100lvh, toolbar
+     hidden) rather than the visible one. One flick and the words are there. */
+  .more{max-width:440px;margin:0 auto;padding:110px 24px 25vh;
+        padding:max(28px, calc(100lvh - 100svh + 28px)) 24px calc(25lvh - 28px)}
   .sec{margin:0 0 40px}
+  #more{scroll-margin-top:28px}
   .sec .h{margin:0 0 10px;font-size:20px;font-weight:600;line-height:1.25;letter-spacing:-.2px;color:var(--fg)}
   .sec .b{margin:0;font-size:17px;line-height:1.5;color:var(--dim)}
-  /* Save to contacts: first thing below the fold, a full white pill.
-     A plain link on purpose: iOS only offers Add Contact from a direct tap. */
-  .save{display:flex;align-items:center;justify-content:center;gap:10px;height:56px;margin:0 0 44px;
+  /* Save to Contacts: the last thing on the page, and the bottom padding puts
+     its center at 75% of the screen once you reach the end: the same thumb
+     spot as Try now. A plain link on purpose: iOS only offers the contact
+     from a direct tap. */
+  .save{display:flex;align-items:center;justify-content:center;gap:10px;height:56px;margin:16px 0 0;
         border-radius:28px;background:#fff;color:#000;text-decoration:none;font-size:18px;font-weight:600;
         -webkit-tap-highlight-color:transparent;transition:transform .1s, filter .1s}
   .save:active{transform:scale(.98);filter:brightness(.9)}
   .save svg{width:22px;height:22px;fill:#000}
-  .foot{text-align:center;color:var(--faint);font-size:13px;margin-top:30px}
 
   /* laptops: you can't dial from here, so hand them a QR that dials from their phone */
   .desk{display:none}
@@ -180,10 +187,8 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   <a class="down" href="#more" aria-label="More about this"><svg viewBox="0 0 24 12" aria-hidden="true"><polyline points="2,2 12,10 22,2"/></svg></a>
 </main>
 
-<section class="more" id="more">
-  <a class="save" href="/next-mission.vcf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg>Save to Contacts</a>
-
-  <div class="sec"><h2 class="h">How is this any different than ChatGPT?</h2>
+<section class="more">
+  <div class="sec" id="more"><h2 class="h">How is this any different than ChatGPT?</h2>
     <p class="b">Right now, it&#8217;s not; this is a prompt you can run on ChatGPT. The idea is to think about AI counterintuitively: having it prompt you instead of you prompting it.</p></div>
 
   <div class="sec"><h2 class="h">What&#8217;s the premise?</h2>
@@ -195,8 +200,7 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   <div class="sec"><h2 class="h">What&#8217;s the point?</h2>
     <p class="b">To make better, faster, more aligned decisions.</p></div>
 
-
-  <p class="foot">${number}</p>
+  <a class="save" href="/next-mission.vcf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg>Save to Contacts</a>
 </section>
 
 </body>
