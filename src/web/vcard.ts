@@ -8,6 +8,7 @@
  */
 
 import { optional } from '../env.js';
+import { CONTACT_PHOTO_JPEG_BASE64 } from './contact-photo.js';
 
 /** The agent's number. One number, shared by every caller. */
 export const AGENT_NUMBER = optional('AGENT_PHONE_NUMBER', '+12722297451');
@@ -19,6 +20,13 @@ export const CONTACT_ORG = 'Next Mission';
 export const VCARD_FILENAME = `${CONTACT_NAME}.vcf`;
 
 const CRLF = '\r\n';
+
+/** RFC 2426 line folding: at most 75 characters, continuations start with a space. */
+function fold(line: string): string {
+  const parts = [line.slice(0, 75)];
+  for (let i = 75; i < line.length; i += 74) parts.push(' ' + line.slice(i, i + 74));
+  return parts.join(CRLF);
+}
 
 /** Escape the four characters vCard 3.0 treats as structural. */
 function esc(value: string): string {
@@ -36,6 +44,7 @@ export function vcard(number: string = AGENT_NUMBER): string {
       `ORG:${CONTACT_ORG}`,
       `TEL;TYPE=CELL:${number}`,
       `NOTE:${esc('“It is in your moments of decision that your destiny is shaped.” — Tony Robbins')}`,
+      fold(`PHOTO;ENCODING=b;TYPE=JPEG:${CONTACT_PHOTO_JPEG_BASE64}`),
       'END:VCARD',
     ].join(CRLF) + CRLF
   );
