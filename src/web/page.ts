@@ -11,14 +11,12 @@
  *   what do I do?   → three steps
  *   go              → one green button, the one their thumb already knows
  *
- * It is laid out like a locked iPhone receiving a call: black, the name in
- * white, and "slide to call" at the bottom. No decline — there is nothing to
- * refuse. Everything that explains *why* lives below the fold, for after.
+ * Black, white text, one green bar at the bottom of the screen. No boxes, no
+ * name, nothing to fill in. Everything that explains *why* lives below the
+ * fold, for after they have tried it.
  *
- * The slider is progressive enhancement over a plain tel: link. iOS only dials
- * from a real user gesture, so a completed slide navigates synchronously inside
- * touchend/mouseup — never after a timeout or a fetch. And the knob IS the
- * tel: link, so a plain tap still dials if the slide ever fails.
+ * No JavaScript: the bar is a plain tel: link. On iOS that is the only thing
+ * that reliably dials, and the thing least likely to break.
  */
 
 import { AGENT_NUMBER, CONTACT_NAME } from './vcard.js';
@@ -79,23 +77,14 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   .steps li{padding:9px 0;font-size:20px;color:var(--dim)}
   .steps .n{color:var(--faint);margin-right:10px;font-variant-numeric:tabular-nums}
 
-  /* slide to call */
-  .slide{position:relative;height:76px;border-radius:38px;background:rgba(255,255,255,.16);
-         -webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);touch-action:pan-y;
-         -webkit-user-select:none;user-select:none}
-  .slide .txt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
-              padding-left:60px;font-size:21px;letter-spacing:-.2px;pointer-events:none;
-              background:linear-gradient(90deg,rgba(255,255,255,.42) 0%,rgba(255,255,255,.42) 38%,#fff 50%,rgba(255,255,255,.42) 62%,rgba(255,255,255,.42) 100%);
-              background-size:250% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
-              animation:shine 2.6s linear infinite;transition:opacity .15s}
-  @keyframes shine{0%{background-position:100% 0}100%{background-position:-50% 0}}
-  .knob{position:absolute;top:5px;left:5px;width:66px;height:66px;border-radius:50%;background:var(--green);
-        display:grid;place-items:center;text-decoration:none;touch-action:none;cursor:grab;
-        box-shadow:0 2px 10px rgba(0,0,0,.35);will-change:transform}
-  .knob.snap{transition:transform .28s cubic-bezier(.2,.9,.3,1)}
-  .knob svg{width:30px;height:30px;fill:#fff;pointer-events:none}
-  .knob:focus-visible{outline:3px solid #fff;outline-offset:4px}
-  .number{display:block;text-align:center;margin-top:14px;font-size:15px;color:var(--faint);text-decoration:none}
+  /* the one button: a green pill across the bottom */
+  .bar{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:62px;
+       border-radius:31px;background:var(--green);color:#fff;text-decoration:none;
+       font-size:19px;font-weight:600;letter-spacing:-.2px;-webkit-tap-highlight-color:transparent;
+       transition:transform .1s, filter .1s}
+  .bar svg{width:22px;height:22px;fill:#fff}
+  .bar:active{transform:scale(.98);filter:brightness(.92)}
+  .bar:focus-visible{outline:3px solid #fff;outline-offset:4px}
 
   .more-hint{display:block;text-align:center;margin-top:22px;font-size:13px;color:var(--faint);text-decoration:none}
 
@@ -120,21 +109,21 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
     .desk p{margin:0;font-size:14px;line-height:1.4;color:var(--dim)}
   }
 
-  @media (prefers-reduced-motion:reduce){.slide .txt{animation:none;color:#fff;background:none}}
+  @media (prefers-reduced-motion:reduce){.bar{transition:none}}
 </style>
 </head>
 <body>
 
 <main class="call-screen">
   <header class="caller">
-    <h1>This is an AI voice agent that helps you make a decision.</h1>
+    <h1>This is a voice agent that helps you make a decision.</h1>
   </header>
 
   <section class="middle" aria-label="How to use it">
     <div class="shot">
-      <p class="q">What decision have you been avoiding?</p>
+      <p class="q">Just call and explain the situation</p>
       <ol class="steps">
-        <li><span class="n">1</span>Explain the situation</li>
+        <li><span class="n">1</span>Think about a situation that needs clarity</li>
         <li><span class="n">2</span>Be honest</li>
         <li><span class="n">3</span>Leave with clarity</li>
       </ol>
@@ -145,12 +134,10 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
     </div>
   </section>
 
-  <div class="slide" id="slide">
-    <span class="txt">slide to call</span>
-    <a class="knob" id="knob" href="${tel}" aria-label="Call ${number}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></a>
-  </div>
-  <a class="number" href="${tel}">${number}</a>
-  <a class="more-hint" href="#more">How is this different?</a>
+  <a class="bar" href="${tel}" aria-label="Ready to try? Call ${number}">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
+    Ready to try?
+  </a>
 </main>
 
 <section class="more" id="more">
@@ -176,59 +163,6 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   <p class="foot">${number}</p>
 </section>
 
-<script>
-(function () {
-  var track = document.getElementById('slide');
-  var knob = document.getElementById('knob');
-  var txt = track.querySelector('.txt');
-  var TEL = knob.getAttribute('href');
-  var startX = 0, x = 0, max = 0, dragging = false, moved = false;
-
-  function maxX() { return track.clientWidth - knob.offsetWidth - 10; }
-  function set(v) {
-    x = Math.max(0, Math.min(v, max));
-    knob.style.transform = 'translateX(' + x + 'px)';
-    txt.style.opacity = String(1 - Math.min(1, x / (max * 0.6)));
-  }
-  function begin(clientX) {
-    max = maxX(); startX = clientX - x; dragging = true; moved = false;
-    knob.classList.remove('snap');
-  }
-  function move(clientX) {
-    if (!dragging) return;
-    var v = clientX - startX;
-    if (Math.abs(v) > 6) moved = true;
-    set(v);
-  }
-  // Must run synchronously inside the touchend / mouseup handler:
-  // iOS only dials tel: from a live user gesture.
-  function end() {
-    if (!dragging) return;
-    dragging = false;
-    knob.classList.add('snap');
-    if (moved && x >= max * 0.72) {
-      set(max);
-      window.location.href = TEL;
-      setTimeout(function () { set(0); }, 1200);
-    } else {
-      set(0);
-    }
-  }
-
-  knob.addEventListener('touchstart', function (e) { begin(e.touches[0].clientX); }, { passive: true });
-  knob.addEventListener('touchmove', function (e) { if (dragging) { e.preventDefault(); move(e.touches[0].clientX); } }, { passive: false });
-  knob.addEventListener('touchend', end);
-  knob.addEventListener('touchcancel', function () { dragging = false; knob.classList.add('snap'); set(0); });
-
-  knob.addEventListener('mousedown', function (e) { e.preventDefault(); begin(e.clientX); });
-  window.addEventListener('mousemove', function (e) { move(e.clientX); });
-  window.addEventListener('mouseup', end);
-
-  // A drag must not also fire the link; a plain tap still dials.
-  knob.addEventListener('click', function (e) { if (moved) { e.preventDefault(); moved = false; } });
-  window.addEventListener('resize', function () { max = maxX(); if (x) set(0); });
-})();
-</script>
 </body>
 </html>`;
 }
