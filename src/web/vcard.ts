@@ -13,7 +13,7 @@ import { optional } from '../env.js';
 export const AGENT_NUMBER = optional('AGENT_PHONE_NUMBER', '+12722297451');
 
 /** The name that shows up in the caller's phone. The company is the product. */
-export const CONTACT_NAME = 'Clarity';
+export const CONTACT_NAME = 'habibi';
 export const CONTACT_ORG = 'Next Mission';
 
 export const VCARD_FILENAME = `${CONTACT_NAME}.vcf`;
