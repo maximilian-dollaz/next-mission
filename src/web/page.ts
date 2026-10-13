@@ -127,7 +127,7 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
 
   <section class="content">
     <h1><span>This is a voice agent that</span> <span>helps you make a decision</span></h1>
-    <ol class="steps">
+    <ol class="steps" role="list">
       <li><span class="n">1.</span>Call</li>
       <li><span class="n">2.</span>Explain the situation</li>
       <li><span class="n">3.</span>Be honest</li>
