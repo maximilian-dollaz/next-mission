@@ -58,24 +58,29 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
        -webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
   a{color:inherit}
 
-  /* ── the call screen: exactly one viewport tall ── */
+  /* ── the call screen: exactly one viewport tall ──
+     The text block sits at the optical center (a little above the middle),
+     where the eye lands first on a phone; the button sits in the thumb zone. */
   .call-screen{
     min-height:100vh; min-height:100svh;
     max-width:440px; margin:0 auto;
     display:flex; flex-direction:column;
-    padding:calc(env(safe-area-inset-top) + 9vh) 24px calc(env(safe-area-inset-bottom) + 28px);
+    padding:calc(env(safe-area-inset-top) + 16px) 28px calc(env(safe-area-inset-bottom) + 24px);
+  }
+  .above{flex:1 1 0}
+  .below{flex:1.4 1 0}
+
+  .content{text-align:center}
+  .content h1{
+    margin:0 auto; max-width:12.5em;
+    font-size:clamp(28px, 7.8vw, 34px); font-weight:600; line-height:1.16; letter-spacing:-.5px;
+    color:#fff; text-wrap:balance;
   }
 
-  .caller{text-align:center}
-  .caller h1{margin:0 auto;max-width:15em;font-size:28px;font-weight:600;letter-spacing:-.4px;line-height:1.2;text-wrap:balance}
-
-  /* the "screenshot on the lock screen": centered in the remaining space */
-  .middle{flex:1;display:flex;align-items:center;justify-content:center;padding:28px 0}
-  .shot{width:100%;text-align:center}
-  .shot .q{margin:0 0 28px;font-size:24px;font-weight:600;line-height:1.25;letter-spacing:-.3px;text-wrap:balance}
-  .steps{list-style:none;margin:0;padding:0}
-  .steps li{padding:9px 0;font-size:20px;color:var(--dim)}
-  .steps .n{color:var(--faint);margin-right:10px;font-variant-numeric:tabular-nums}
+  /* centered as a block, left-aligned inside so the numbers line up */
+  .steps{list-style:none; margin:40px auto 0; padding:0; width:fit-content; text-align:left}
+  .steps li{font-size:clamp(19px, 5.2vw, 21px); line-height:1.3; padding:7px 0; color:#fff; font-weight:400}
+  .steps .n{display:inline-block; min-width:1.6em; color:#fff; font-weight:600; font-variant-numeric:tabular-nums}
 
   /* the one button: a green pill across the bottom */
   .bar{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;height:62px;
@@ -115,28 +120,26 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
 <body>
 
 <main class="call-screen">
-  <header class="caller">
-    <h1>This is a voice agent that helps you make a decision.</h1>
-  </header>
+  <div class="above"></div>
 
-  <section class="middle" aria-label="How to use it">
-    <div class="shot">
-      <p class="q">Just call and explain the situation</p>
-      <ol class="steps">
-        <li><span class="n">1</span>Think about a situation that needs clarity</li>
-        <li><span class="n">2</span>Be honest</li>
-        <li><span class="n">3</span>Leave with clarity</li>
-      </ol>
-      <div class="desk">
-        <div class="qr" aria-hidden="true">${qrSvg}</div>
-        <p>On a computer? Scan this with your iPhone camera and it will offer to call.</p>
-      </div>
+  <section class="content">
+    <h1>This is a voice agent that helps you make a decision</h1>
+    <ol class="steps">
+      <li><span class="n">1.</span>Call</li>
+      <li><span class="n">2.</span>Explain the situation</li>
+      <li><span class="n">3.</span>Be honest</li>
+    </ol>
+    <div class="desk">
+      <div class="qr" aria-hidden="true">${qrSvg}</div>
+      <p>On a computer? Scan this with your iPhone camera and it will offer to call.</p>
     </div>
   </section>
 
-  <a class="bar" href="${tel}" aria-label="Ready to try? Call ${number}">
+  <div class="below"></div>
+
+  <a class="bar" href="${tel}" aria-label="Try now — call ${number}">
     <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg>
-    Ready to try?
+    Try now
   </a>
 </main>
 
