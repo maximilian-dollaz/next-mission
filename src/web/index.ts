@@ -18,7 +18,7 @@ import { optionalRaw } from '../env.js';
 import { accruedLine, formatSeconds, reportCallSeconds, billingReady } from '../billing/index.js';
 import { landingPage } from './page.js';
 import { formatForHumans, toE164 } from './phone.js';
-import { AGENT_NUMBER, vcard, vcardMinimal, vcardHeaders, VCARD_FILENAME } from './vcard.js';
+import { AGENT_NUMBER, vcard, vcardMinimal, vcardPhotoVariant, vcardHeaders, VCARD_FILENAME } from './vcard.js';
 import {
   closeDelivery,
   dbReady,
@@ -123,10 +123,31 @@ const serveVcard = async (c: Context) => {
       };
   headers['Cache-Control'] = 'no-store';
   const bare = c.req.query('min') === '1';
-  return new Response(bare ? vcardMinimal() : vcard(), { headers });
+  const p = c.req.query('p') ?? '';
+  const body = bare ? vcardMinimal() : ['b', 'c', 'd'].includes(p) ? vcardPhotoVariant(p) : vcard();
+  return new Response(body, { headers });
 };
 
 // A bare page of every variant, so the one that works can be found in one pass.
+// Which photo encoding does iOS show? Each link differs only in the photo.
+web.get('/photo-test', (c) =>
+  c.html(
+    `<!doctype html><meta name=viewport content="width=device-width,initial-scale=1">
+     <style>body{font:17px/1.5 -apple-system,sans-serif;padding:24px;max-width:34rem;margin:auto;background:#000;color:#fff}
+     a{display:block;padding:18px;margin:12px 0;border:1px solid #444;border-radius:12px;text-decoration:none;color:#fff}
+     b{display:block;font-size:19px}small{color:#999}</style>
+     <h2>Which one shows the red phone?</h2>` +
+      [
+        ['a', 'Current card'],
+        ['b', 'Photo first, BASE64, one line'],
+        ['c', 'Photo first, smaller photo'],
+        ['d', 'Name, number and photo only'],
+      ]
+        .map(([p, note]) => `<a href="/next-mission.vcf?p=${p}"><b>${(p ?? "").toUpperCase()}</b><small>${note}</small></a>`)
+        .join('')
+  )
+);
+
 web.get('/vcard-test', (c) => {
   const rows = [
     ['1', 'text/vcard; charset=utf-8', 'no disposition  (current default)'],

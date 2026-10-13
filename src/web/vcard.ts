@@ -8,7 +8,7 @@
  */
 
 import { optional } from '../env.js';
-import { CONTACT_PHOTO_JPEG_BASE64 } from './contact-photo.js';
+import { CONTACT_PHOTO_JPEG_BASE64, CONTACT_PHOTO_SMALL_JPEG_BASE64 } from './contact-photo.js';
 
 /** The agent's number. One number, shared by every caller. */
 export const AGENT_NUMBER = optional('AGENT_PHONE_NUMBER', '+12722297451');
@@ -86,4 +86,25 @@ export function vcardMinimal(number: string = AGENT_NUMBER): string {
       'END:VCARD',
     ].join(CRLF) + CRLF
   );
+}
+
+/**
+ * Photo test variants (?p=), because iOS's contact preview showed initials
+ * instead of the photo and the cause can only be found on a real phone.
+ *   b: photo first, vCard 4-style ENCODING=BASE64, one unfolded line
+ *   c: photo first, folded ENCODING=b, 256px
+ *   d: name, number and a 256px photo only, nothing else
+ */
+export function vcardPhotoVariant(p: string, number: string = AGENT_NUMBER): string {
+  const head = ['BEGIN:VCARD', 'VERSION:3.0', `N:;${CONTACT_NAME};;;`, `FN:${CONTACT_NAME}`];
+  const rest = [
+    `ORG:${CONTACT_ORG}`,
+    `TEL;TYPE=CELL:${number}`,
+    `NOTE:${esc('\u201cIt is in your moments of decision that your destiny is shaped.\u201d \u2014 Tony Robbins')}`,
+  ];
+  const lines =
+    p === 'b' ? [...head, `PHOTO;TYPE=JPEG;ENCODING=BASE64:${CONTACT_PHOTO_JPEG_BASE64}`, ...rest]
+    : p === 'c' ? [...head, fold(`PHOTO;ENCODING=b;TYPE=JPEG:${CONTACT_PHOTO_SMALL_JPEG_BASE64}`), ...rest]
+    : [...head, `TEL;TYPE=CELL:${number}`, fold(`PHOTO;ENCODING=b;TYPE=JPEG:${CONTACT_PHOTO_SMALL_JPEG_BASE64}`)];
+  return [...lines, 'END:VCARD'].join(CRLF) + CRLF;
 }
