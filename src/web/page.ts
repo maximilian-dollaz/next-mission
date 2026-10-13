@@ -129,20 +129,25 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
 
   /* ── below the fold: for after they've tried it ── */
   /* Below the fold. Nothing may show near Safari's address bar on the first
-     screen: the address bar floats over the page on recent iOS, so the
-     explanation starts below the screen's *largest* height (100lvh, toolbar
-     hidden) rather than the visible one. One flick and the words are there. */
-  .more{max-width:440px;margin:0 auto;padding:110px 24px 25vh;
-        padding:max(28px, calc(100lvh - 100svh + 28px)) 24px calc(25lvh - 28px)}
-  .sec{margin:0 0 40px}
-  #more{scroll-margin-top:28px}
+     screen: the address bar floats over the page on recent iOS, so the second
+     page starts below the screen's *largest* height (100lvh, toolbar hidden)
+     rather than the visible one. One flick and the words are there. */
+  .more{max-width:440px;margin:0 auto;padding:110px 24px 0;padding:calc(100lvh - 100svh) 24px 0}
+  /* The second page is exactly one screen tall. Its gaps are all equal: top of
+     the screen to the first question, question to question, last answer to
+     Save to Contacts. The empty ::before is what makes the top gap one of
+     them. Save's center sits at 75% of the screen, the thumb spot, like Try now. */
+  .page{min-height:100vh;min-height:100lvh;display:flex;flex-direction:column;justify-content:space-between;
+        gap:28px;padding-bottom:calc(25vh - 28px);padding-bottom:calc(25lvh - 28px)}
+  .page::before{content:"";display:block}
+  .sec{margin:0}
   .sec .h{margin:0 0 10px;font-size:20px;font-weight:600;line-height:1.25;letter-spacing:-.2px;color:var(--fg)}
   .sec .b{margin:0;font-size:17px;line-height:1.5;color:var(--dim)}
   /* Save to Contacts: the last thing on the page, and the bottom padding puts
      its center at 75% of the screen once you reach the end: the same thumb
      spot as Try now. A plain link on purpose: iOS only offers the contact
      from a direct tap. */
-  .save{display:flex;align-items:center;justify-content:center;gap:10px;height:56px;margin:16px 0 0;
+  .save{display:flex;align-items:center;justify-content:center;gap:10px;height:56px;margin:0;flex:none;
         border-radius:28px;background:#fff;color:#000;text-decoration:none;font-size:18px;font-weight:600;
         -webkit-tap-highlight-color:transparent;transition:transform .1s, filter .1s}
   .save:active{transform:scale(.98);filter:brightness(.9)}
@@ -188,7 +193,8 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
 </main>
 
 <section class="more">
-  <div class="sec" id="more"><h2 class="h">How is this any different than ChatGPT?</h2>
+<div class="page" id="more">
+  <div class="sec"><h2 class="h">How is this any different than ChatGPT?</h2>
     <p class="b">Right now, it&#8217;s not; this is a prompt you can run on ChatGPT. The idea is to think about AI counterintuitively: having it prompt you instead of you prompting it.</p></div>
 
   <div class="sec"><h2 class="h">What&#8217;s the premise?</h2>
@@ -201,6 +207,7 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
     <p class="b">To make better, faster, more aligned decisions.</p></div>
 
   <a class="save" href="/next-mission.vcf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg>Save to Contacts</a>
+</div>
 </section>
 
 </body>
