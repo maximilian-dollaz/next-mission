@@ -133,20 +133,16 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
      page starts below the screen's *largest* height (100lvh, toolbar hidden)
      rather than the visible one. One flick and the words are there. */
   .more{max-width:440px;margin:0 auto;padding:110px 24px 0;padding:calc(100lvh - 100svh) 24px 0}
-  /* The second page is exactly one screen tall. Its gaps are all equal: top of
-     the screen to the first question, question to question, last answer to
-     Save to Contacts. The empty ::before is what makes the top gap one of
-     them. Save's center sits at 75% of the screen, the thumb spot, like Try now. */
-  .page{min-height:100vh;min-height:100lvh;display:flex;flex-direction:column;justify-content:space-between;
-        gap:28px;padding-bottom:calc(25vh - 28px);padding-bottom:calc(25lvh - 28px)}
-  .page::before{content:"";display:block}
+  /* The second page: one even rhythm. The same 36px above the first question,
+     between every question, and above Save to Contacts. Below Save, enough
+     room that, scrolled to the end, it sits clear of Safari's floating
+     address bar, low on the screen where the thumb is. */
+  .page{display:flex;flex-direction:column;gap:36px;padding:36px 0 calc(env(safe-area-inset-bottom) + 104px)}
   .sec{margin:0}
   .sec .h{margin:0 0 10px;font-size:20px;font-weight:600;line-height:1.25;letter-spacing:-.2px;color:var(--fg)}
   .sec .b{margin:0;font-size:17px;line-height:1.5;color:var(--dim)}
-  /* Save to Contacts: the last thing on the page, and the bottom padding puts
-     its center at 75% of the screen once you reach the end: the same thumb
-     spot as Try now. A plain link on purpose: iOS only offers the contact
-     from a direct tap. */
+  /* Save to Contacts: the last thing on the page. A plain link on purpose:
+     iOS only offers the contact from a direct tap. */
   .save{display:flex;align-items:center;justify-content:center;gap:10px;height:56px;margin:0;flex:none;
         border-radius:28px;background:#fff;color:#000;text-decoration:none;font-size:18px;font-weight:600;
         -webkit-tap-highlight-color:transparent;transition:transform .1s, filter .1s}
