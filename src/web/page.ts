@@ -106,7 +106,7 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   .call-screen{height:100vh; height:100svh}
   .content h1,.steps,.bar{position:absolute; margin:0; transform:translateY(-50%)}
   .content h1{top:30%; left:24px; right:24px}
-  .steps{top:52.5%; left:50%; transform:translate(-50%,-50%)}
+  .steps{top:52.5%; left:50%; transform:translate(-50%,-50%); width:max-content; white-space:nowrap}
   .bar{top:75%; left:24px; right:24px; width:auto}
 
   /* a laptop, or a phone on its side: too short to pin, so stack them */
