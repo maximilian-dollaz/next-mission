@@ -93,6 +93,29 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
        font-size:19px;font-weight:600;letter-spacing:-.2px;-webkit-tap-highlight-color:transparent;
        transition:transform .1s, filter .1s}
   .bar svg{width:22px;height:22px;fill:#fff}
+
+  /* ── on a phone, each element is pinned to where the body already is ──
+     Percentages of the visible screen (100svh, Safari's bars excluded):
+       30%   the headline's center: the upper third, where the eye lands first
+       75%   the button's center: the resting arc of a one-handed thumb
+             (about two-thirds down the physical glass on an iPhone 15)
+       52.5% the list's center: halfway between them. The headline and the
+             button are within 4px of the same height, so halfway between their
+             centers is also halfway between the headline's last line and the
+             button's top edge. */
+  .call-screen{height:100vh; height:100svh}
+  .content h1,.steps,.bar{position:absolute; margin:0; transform:translateY(-50%)}
+  .content h1{top:30%; left:24px; right:24px}
+  .steps{top:52.5%; left:50%; transform:translate(-50%,-50%)}
+  .bar{top:75%; left:24px; right:24px; width:auto}
+
+  /* a laptop, or a phone on its side: too short to pin, so stack them */
+  @media (hover:hover) and (pointer:fine) and (min-width:760px), (max-height:520px){
+    .call-screen{height:auto}
+    .content h1,.steps,.bar{position:static; transform:none}
+    .steps{margin:34px auto 0}
+    .bar{margin-top:34px; width:100%}
+  }
   .bar:active{transform:scale(.98);filter:brightness(.92)}
   .bar:focus-visible{outline:3px solid #fff;outline-offset:4px}
 
