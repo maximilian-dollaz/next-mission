@@ -69,18 +69,15 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   }
 
   .caller{text-align:center}
-  .caller h1{margin:0;font-size:40px;font-weight:400;letter-spacing:-.6px;line-height:1.1}
-  .caller p{margin:10px auto 0;max-width:20em;font-size:17px;line-height:1.35;color:var(--dim)}
+  .caller h1{margin:0 auto;max-width:15em;font-size:28px;font-weight:600;letter-spacing:-.4px;line-height:1.2;text-wrap:balance}
 
   /* the "screenshot on the lock screen": centered in the remaining space */
   .middle{flex:1;display:flex;align-items:center;justify-content:center;padding:28px 0}
-  .shot{width:100%;background:var(--card);border-radius:22px;padding:24px 22px 8px;
-        box-shadow:0 0 0 .5px rgba(255,255,255,.08)}
-  .shot .q{margin:0 0 18px;font-size:23px;font-weight:600;line-height:1.25;letter-spacing:-.3px;text-wrap:balance}
+  .shot{width:100%;text-align:center}
+  .shot .q{margin:0 0 28px;font-size:24px;font-weight:600;line-height:1.25;letter-spacing:-.3px;text-wrap:balance}
   .steps{list-style:none;margin:0;padding:0}
-  .steps li{display:flex;align-items:center;gap:14px;padding:14px 0;border-top:.5px solid var(--line);font-size:18px}
-  .steps .n{flex:none;width:28px;height:28px;border-radius:50%;background:#2C2C2E;color:var(--dim);
-            display:grid;place-items:center;font-size:14px;font-weight:600}
+  .steps li{padding:9px 0;font-size:20px;color:var(--dim)}
+  .steps .n{color:var(--faint);margin-right:10px;font-variant-numeric:tabular-nums}
 
   /* slide to call */
   .slide{position:relative;height:76px;border-radius:38px;background:rgba(255,255,255,.16);
@@ -105,19 +102,19 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   /* ── below the fold: for after they've tried it ── */
   .more{max-width:440px;margin:0 auto;padding:40px 16px calc(env(safe-area-inset-bottom) + 56px)}
   .more h2{font-size:28px;font-weight:700;letter-spacing:-.3px;margin:0 8px 18px}
-  .sec{margin:0 0 16px}
+  .sec{margin:0 0 26px}
   .sec .h{font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:#8E8E93;padding:0 16px 7px}
-  .sec .b{background:var(--card);border-radius:14px;padding:14px 16px;font-size:17px;line-height:1.4}
+  .sec .b{padding:0 16px;font-size:17px;line-height:1.45;color:var(--dim)}
   .sec .b em{font-style:normal;color:var(--fg);font-weight:600}
-  .save{display:flex;align-items:center;justify-content:center;gap:9px;margin:26px 0 0;height:54px;
-        border-radius:14px;background:var(--card);text-decoration:none;font-size:17px;color:var(--green);font-weight:600}
+  .save{display:flex;align-items:center;justify-content:center;gap:8px;margin:30px 0 0;
+        text-decoration:none;font-size:17px;color:var(--green);font-weight:600}
   .save svg{width:20px;height:20px;fill:var(--green)}
   .foot{text-align:center;color:var(--faint);font-size:13px;margin-top:30px}
 
   /* laptops: you can't dial from here, so hand them a QR that dials from their phone */
   .desk{display:none}
   @media (hover:hover) and (pointer:fine) and (min-width:760px){
-    .desk{display:flex;align-items:center;gap:16px;margin-top:18px;padding:14px;border-radius:16px;background:var(--card)}
+    .desk{display:flex;align-items:center;justify-content:center;gap:16px;margin-top:30px;text-align:left}
     .desk .qr{flex:none;width:96px;height:96px;background:#fff;border-radius:10px;padding:6px}
     .desk .qr svg{width:100%;height:100%;display:block}
     .desk p{margin:0;font-size:14px;line-height:1.4;color:var(--dim)}
@@ -130,28 +127,27 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
 
 <main class="call-screen">
   <header class="caller">
-    <h1>${CONTACT_NAME}</h1>
-    <p>An AI voice agent that helps you make a decision.</p>
+    <h1>This is an AI voice agent that helps you make a decision.</h1>
   </header>
 
   <section class="middle" aria-label="How to use it">
     <div class="shot">
-      <p class="q">What have you been going back and forth on?</p>
+      <p class="q">What decision have you been avoiding?</p>
       <ol class="steps">
-        <li><span class="n">1</span>Call ${CONTACT_NAME}.</li>
-        <li><span class="n">2</span>Explain the situation.</li>
-        <li><span class="n">3</span>Be honest.</li>
+        <li><span class="n">1</span>Explain the situation</li>
+        <li><span class="n">2</span>Be honest</li>
+        <li><span class="n">3</span>Leave with clarity</li>
       </ol>
       <div class="desk">
         <div class="qr" aria-hidden="true">${qrSvg}</div>
-        <p>On a computer? Scan this with your iPhone camera and it will offer to call ${CONTACT_NAME}.</p>
+        <p>On a computer? Scan this with your iPhone camera and it will offer to call.</p>
       </div>
     </div>
   </section>
 
   <div class="slide" id="slide">
     <span class="txt">slide to call</span>
-    <a class="knob" id="knob" href="${tel}" aria-label="Call ${CONTACT_NAME} at ${number}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></a>
+    <a class="knob" id="knob" href="${tel}" aria-label="Call ${number}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z"/></svg></a>
   </div>
   <a class="number" href="${tel}">${number}</a>
   <a class="more-hint" href="#more">How is this different?</a>
@@ -161,7 +157,7 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   <h2>After you call</h2>
 
   <div class="sec"><div class="h">How is this different from ChatGPT?</div>
-    <div class="b">ChatGPT answers you. <em>${CONTACT_NAME} asks you.</em> It won&#8217;t give you advice &#8212; it asks questions until the answer you already have becomes obvious.</div></div>
+    <div class="b">ChatGPT answers you. <em>This asks you.</em> It won&#8217;t give you advice &#8212; it asks questions until the answer you already have becomes obvious.</div></div>
 
   <div class="sec"><div class="h">What should I bring to it?</div>
     <div class="b">Anything you&#8217;ve been going back and forth on. It can be small &#8212; you don&#8217;t have to start with the big one. It has a way of finding what&#8217;s underneath.</div></div>
@@ -170,12 +166,12 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
     <div class="b">No. It starts by asking you a question. Give it as much of the situation as you can &#8212; <em>your only job is to be honest.</em></div></div>
 
   <div class="sec"><div class="h">What do I walk away with?</div>
-    <div class="b">A decision in your own words, and the next step. If you use an AI assistant, ${CONTACT_NAME} can hand that step to it.</div></div>
+    <div class="b">A decision in your own words, and the next step. If you use an AI assistant, it can hand that step to it.</div></div>
 
   <div class="sec"><div class="h">Who hears this?</div>
     <div class="b">Only you. Your call is saved to a private library that belongs to you, and deleted from the voice provider.</div></div>
 
-  <a class="save" href="/next-mission.vcf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg>Save ${CONTACT_NAME} to contacts</a>
+  <a class="save" href="/next-mission.vcf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg>Save to contacts</a>
 
   <p class="foot">${number}</p>
 </section>
