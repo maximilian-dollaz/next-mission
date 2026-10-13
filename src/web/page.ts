@@ -105,12 +105,10 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
   @keyframes blink{0%,100%{opacity:.14}50%{opacity:.45}}
 
   /* ── below the fold: for after they've tried it ── */
-  .more{max-width:440px;margin:40vh auto 0;padding:40px 16px calc(env(safe-area-inset-bottom) + 56px)}
-  .more h2{font-size:28px;font-weight:700;letter-spacing:-.3px;margin:0 8px 18px}
-  .sec{margin:0 0 26px}
-  .sec .h{font-size:13px;letter-spacing:.02em;text-transform:uppercase;color:#8E8E93;padding:0 16px 7px}
-  .sec .b{padding:0 16px;font-size:17px;line-height:1.45;color:var(--dim)}
-  .sec .b em{font-style:normal;color:var(--fg);font-weight:600}
+  .more{max-width:440px;margin:40vh auto 0;padding:48px 24px calc(env(safe-area-inset-bottom) + 56px)}
+  .sec{margin:0 0 40px}
+  .sec .h{margin:0 0 10px;font-size:20px;font-weight:600;line-height:1.25;letter-spacing:-.2px;color:var(--fg)}
+  .sec .b{margin:0;font-size:17px;line-height:1.5;color:var(--dim)}
   .save{display:flex;align-items:center;justify-content:center;gap:8px;margin:30px 0 0;
         text-decoration:none;font-size:17px;color:var(--green);font-weight:600}
   .save svg{width:20px;height:20px;fill:var(--green)}
@@ -156,22 +154,17 @@ export function landingPage({ qrSvg, origin }: PageOptions): string {
 </main>
 
 <section class="more" id="more">
-  <h2>After you call</h2>
+  <div class="sec"><h2 class="h">How is this any different than ChatGPT?</h2>
+    <p class="b">Right now, it&#8217;s not; this is a prompt you can run on ChatGPT. The idea is to think about AI counterintuitively: having it prompt you instead of you prompting it.</p></div>
 
-  <div class="sec"><div class="h">How is this different from ChatGPT?</div>
-    <div class="b">ChatGPT answers you. <em>This asks you.</em> It won&#8217;t give you advice &#8212; it asks questions until the answer you already have becomes obvious.</div></div>
+  <div class="sec"><h2 class="h">What&#8217;s the premise?</h2>
+    <p class="b">When it comes to determining your next mission, you are the source of the answer. It cannot be found outside, only revealed within. AI acts as an ego-less mirror, reflecting yourself back to you, helping you see the truth.</p></div>
 
-  <div class="sec"><div class="h">What should I bring to it?</div>
-    <div class="b">Anything you&#8217;ve been going back and forth on. It can be small &#8212; you don&#8217;t have to start with the big one. It has a way of finding what&#8217;s underneath.</div></div>
+  <div class="sec"><h2 class="h">What problem is this solving?</h2>
+    <p class="b">Fear-based decision making, clouded by ego-based judgements and misperceptions.</p></div>
 
-  <div class="sec"><div class="h">Do I have to know what to say?</div>
-    <div class="b">No. It starts by asking you a question. Give it as much of the situation as you can &#8212; <em>your only job is to be honest.</em></div></div>
-
-  <div class="sec"><div class="h">What do I walk away with?</div>
-    <div class="b">A decision in your own words, and the next step. If you use an AI assistant, it can hand that step to it.</div></div>
-
-  <div class="sec"><div class="h">Who hears this?</div>
-    <div class="b">Only you. Your call is saved to a private library that belongs to you, and deleted from the voice provider.</div></div>
+  <div class="sec"><h2 class="h">What&#8217;s the point?</h2>
+    <p class="b">To make better, faster, more aligned decisions.</p></div>
 
   <a class="save" href="/next-mission.vcf"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 12c2.2 0 4-1.8 4-4s-1.8-4-4-4-4 1.8-4 4 1.8 4 4 4zm0 2c-2.7 0-8 1.3-8 4v2h16v-2c0-2.7-5.3-4-8-4z"/></svg>Save to contacts</a>
 
